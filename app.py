@@ -37,6 +37,7 @@ class Job:
         self.stats = {"llm_calls": 0, "llm_asked": 0, "llm_filled": 0, "llm_errors": 0, "errors": 0}
         self.fill = {k: 0 for k in KEYS}
         self.skipped = 0
+        self.index = {}            # имя -> номер строки
 
     def add(self, name, raw):
         """Добавляет файл; архив .zip распаковывается."""
@@ -78,7 +79,7 @@ class Job:
             if self.stop:
                 self.state = "stopped"
                 break
-            doc = {"name": name, "error": None, "warnings": [], "llm_fields": []}
+            doc = {"name": name, "error": None, "warnings": [], "llm_fields": [], "verified": set(), "edited": {}, "notes": []}
             try:
                 text = decode_bytes(self.files[name])
                 vals, ev = extract(text)
@@ -99,20 +100,46 @@ class Job:
                 doc["error"] = f"{type(e).__name__}: {e}"
                 self.stats["errors"] += 1
             flat = {k: str(vals.get(k) or NU) for k in KEYS}
+            doc["notes"] = list(doc["warnings"])            # замечания, не зависящие от значений
             if vals:
-                doc["warnings"] += check(flat)
+                doc["warnings"] = doc["notes"] + check(flat)
             doc.update(text=text, values=flat, evidence={k: ev.get(k, "") for k in KEYS})
             for k, v in flat.items():
                 self.fill[k] += v != NU
             self.docs[name] = doc
-            notes = " ".join(doc["evidence"].values())
-            self.rows.append({"name": name, "filled": sum(v != NU for v in flat.values()),
-                              "warnings": len(doc["warnings"]), "error": doc["error"],
-                              "llm": len(doc["llm_fields"]), "typo": "исправлена опечатка" in notes})
+            self.index[name] = len(self.rows)
+            self.rows.append(self.row(doc))
             self.files[name] = b""                             # исходные байты больше не нужны
         else:
             self.state = "done"
         self.finished = time.time()
+
+    def row(self, d):
+        notes = " ".join(d["evidence"].values())
+        return {"name": d["name"], "filled": sum(v != NU for v in d["values"].values()),
+                "warnings": len(d["warnings"]), "error": d["error"], "llm": len(d["llm_fields"]),
+                "typo": "исправлена опечатка" in notes, "verified": len(d["verified"]), "edited": len(d["edited"])}
+
+    def edit(self, name, key, value):
+        """Ручная правка значения: попадает в result, исходное значение сохраняется."""
+        d = self.docs[name]
+        value = " ".join(str(value).split()) or NU
+        old = d["values"][key]
+        if value == old:
+            return
+        d["edited"].setdefault(key, old)
+        if d["edited"][key] == value:
+            del d["edited"][key]
+        self.fill[key] += (value != NU) - (old != NU)
+        d["values"][key] = value
+        d["warnings"] = d["notes"] + check(d["values"])
+        self.rows[self.index[name]] = self.row(d)
+
+    def verify(self, name, keys, on):
+        d = self.docs[name]
+        keys = [k for k in keys if k in d["values"]]
+        d["verified"] = (d["verified"] | set(keys)) if on else (d["verified"] - set(keys))
+        self.rows[self.index[name]] = self.row(d)
 
     def summary(self, since=0):
         now = self.finished or time.time()
@@ -122,12 +149,20 @@ class Job:
                 "skipped": self.skipped, "flagged": sum(1 for r in self.rows if r["warnings"] or r["error"]),
                 "seconds": round(total, 2), "rules_seconds": round(max(total - self.llm_seconds, 0), 2),
                 "llm_seconds": round(self.llm_seconds, 2), **self.stats, "fill": self.fill,
+                "verified_fields": sum(r["verified"] for r in self.rows),
+                "verified_docs": sum(1 for r in self.rows if r["verified"] == len(KEYS)),
+                "edited_fields": sum(r["edited"] for r in self.rows),
                 "rows": self.rows[since:]}
 
     def nested(self, name, with_evidence=False):
         d = self.docs[name]
         if with_evidence:
-            return {g: {k: {"value": d["values"][k], "evidence": d["evidence"][k]} for k in ks} for g, ks in TPL.items()}
+            def item(k):
+                o = {"value": d["values"][k], "evidence": d["evidence"][k], "verified": k in d["verified"]}
+                if k in d["edited"]:
+                    o["edited_from"] = d["edited"][k]
+                return o
+            return {g: {k: item(k) for k in ks} for g, ks in TPL.items()}
         return {g: {k: d["values"][k] for k in ks} for g, ks in TPL.items()}
 
     def archive(self):
@@ -274,6 +309,18 @@ class Handler(BaseHTTPRequestHandler):
                     return self.send({"error": "Для режима с YandexGPT задайте YC_API_KEY и YC_FOLDER_ID в файле .env"}, status=400)
                 threading.Thread(target=j.run, daemon=True).start()
                 return self.send({"ok": True, "total": len(j.order)})
+            if parts[3] in ("edit", "verify"):
+                name = data.get("name")
+                if name not in j.docs:
+                    return self.send({"error": "документ не найден"}, status=404)
+                if parts[3] == "edit":
+                    if data.get("key") not in KEYS:
+                        return self.send({"error": "неизвестное поле"}, status=400)
+                    j.edit(name, data["key"], data.get("value", ""))
+                else:
+                    j.verify(name, data.get("keys", []), bool(data.get("on", True)))
+                d = j.docs[name]
+                return self.send({"row": j.rows[j.index[name]], "warnings": d["warnings"], "groups": j.nested(name, True)})
             if parts[3] == "stop":
                 j.stop = True
                 return self.send({"ok": True})

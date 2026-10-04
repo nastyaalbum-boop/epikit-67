@@ -3,214 +3,294 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Эпикризы → JSON</title>
+<title>Эпикриз — рабочая среда исследователя</title>
 <style>
 :root{
-  --bg:#f6f7f9; --panel:#fff; --line:#dfe3e8; --text:#1a1d21; --muted:#68717d; --accent:#1f6feb; --accent-text:#fff;
-  --ok:#1a7f4b; --warn:#b26a00; --bad:#c62828; --soft:#eef1f5; --hot:#ffe08a;
-  --g0:#dbeafe; --g1:#fde2e2; --g2:#dcf5e3; --g3:#fff1c9; --g4:#e9defc; --g5:#d6f3f5; --g6:#ffe1cc; --g7:#e3ecd0; --g8:#fbdcef;
+  --bg:#f3f5f6; --panel:#fff; --line:#e1e6e9; --text:#1c2b33; --muted:#6a7882; --accent:#1c5d5a; --accent-text:#fff;
+  --accent-soft:#e2efed; --amber:#a66f14; --amber-soft:#fbf1dc; --ok:#2c6a45; --ok-soft:#e2f1e6; --bad:#b3261e; --soft:#f0f3f5;
+  --g0:#cfe3f7; --g1:#f9d5d3; --g2:#cdecd6; --g3:#fbe8b0; --g4:#e0d3f8; --g5:#c6ecee; --g6:#fcd9bf; --g7:#dbe6c0; --g8:#f7d2e8;
+  --mono:ui-monospace,"Cascadia Mono","Consolas","DejaVu Sans Mono",monospace;
 }
 @media (prefers-color-scheme: dark){
   :root{
-    --bg:#14171b; --panel:#1c2026; --line:#2e343c; --text:#e7eaee; --muted:#98a2ae; --accent:#5a9bff; --accent-text:#0d1117;
-    --ok:#5ccb8a; --warn:#f0b24a; --bad:#ff7b72; --soft:#252a31; --hot:#8a6d00;
-    --g0:#1e3a5f; --g1:#5a2a2a; --g2:#1f4a30; --g3:#57460f; --g4:#3d2f66; --g5:#17474c; --g6:#5c3414; --g7:#3a4720; --g8:#59264a;
+    --bg:#11171a; --panel:#182024; --line:#2a353b; --text:#e4eaed; --muted:#93a1aa; --accent:#58b3ac; --accent-text:#0c1416;
+    --accent-soft:#1d3835; --amber:#e3b05a; --amber-soft:#3b2f15; --ok:#7fcb9a; --ok-soft:#1c3626; --bad:#ff8a80; --soft:#1f292e;
+    --g0:#234a72; --g1:#6a3130; --g2:#235538; --g3:#655112; --g4:#483878; --g5:#1b5358; --g6:#6c3d18; --g7:#445327; --g8:#682c56;
   }
 }
 *{box-sizing:border-box}
-body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text)}
-header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
-h1{font-size:16px;margin:0;font-weight:650}
-h2{font-size:15px;margin:0 0 10px}
-nav{display:flex;gap:4px}
-nav button,.seg button{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:6px 12px;font:inherit;cursor:pointer}
-nav button{border-radius:8px}
-nav button.on{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+body{margin:0;font:15px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit;color:inherit}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 28px;background:var(--panel);border-bottom:1px solid var(--line)}
+.logo{width:40px;height:40px;border-radius:10px;background:var(--accent);color:var(--accent-text);display:grid;place-items:center;font-weight:700;font-size:20px}
+.brand{font-size:24px;font-weight:700;letter-spacing:-.01em}
+.caps{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+header .caps{border-left:1px solid var(--line);padding-left:18px}
 .mode{margin-left:auto;display:flex;flex-direction:column;gap:3px;align-items:flex-end}
-.seg{display:flex}
-.seg button:first-child{border-radius:8px 0 0 8px}
-.seg button:last-child{border-radius:0 8px 8px 0;border-left:0}
-.seg button.on{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+.seg{display:flex;background:var(--soft);border-radius:9px;padding:3px}
+.seg button{border:0;background:none;padding:6px 12px;border-radius:7px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--panel);color:var(--accent);font-weight:600;box-shadow:0 0 0 1px var(--line)}
 .seg button:disabled{opacity:.5;cursor:not-allowed}
-.hint{font-size:12px;color:var(--muted)}
-main{padding:20px;max-width:1500px;margin:0 auto}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
-.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:8px;padding:7px 14px;font:inherit;cursor:pointer}
+.hint{font-size:13px;color:var(--muted)}
+main{padding:28px;max-width:1640px;margin:0 auto}
+h1{font-size:34px;line-height:1.15;margin:6px 0 6px;letter-spacing:-.02em}
+.lead{color:var(--muted);font-size:17px;margin:0 0 20px}
+.steps{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:22px}
+.steps button{border:0;background:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px 2px;display:flex;gap:10px}
+.steps button.on{color:var(--accent);font-weight:600}
+.steps i{flex:0 0 46px;height:1px;background:var(--line)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px}
+.pad{padding:18px 22px}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:9px 18px;cursor:pointer;font-weight:600;text-decoration:none;display:inline-block;color:var(--text)}
 .btn.primary{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
-a.btn{text-decoration:none;display:inline-block}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-input[type=text],input[type=search]{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:8px;padding:7px 10px;font:inherit;min-width:0}
+.btn.small{padding:6px 12px;font-weight:500}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+input[type=text],input[type=search],select{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:9px 12px;min-width:0}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.between{justify-content:space-between}
 .drop{border:2px dashed var(--line);border-radius:12px;padding:26px 16px;text-align:center;color:var(--muted)}
-.drop.over{border-color:var(--accent);background:var(--soft)}
-.drop b{color:var(--text);font-size:15px}
-.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.row.center{justify-content:center;margin-top:12px}
-.path{display:flex;gap:8px;margin-top:14px}
-.path input{flex:1}
-.bar{height:10px;background:var(--soft);border-radius:6px;overflow:hidden;margin:10px 0 6px}
-.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
-.tile{background:var(--soft);border-radius:10px;padding:10px 12px}
-.tile b{display:block;font-size:20px;font-weight:650}
-.tile span{font-size:12px;color:var(--muted)}
-.tile.ok b{color:var(--ok)} .tile.warn b{color:var(--warn)} .tile.bad b{color:var(--bad)}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop b{color:var(--text);font-size:17px}
+.bar{height:8px;background:var(--soft);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+.stats{display:flex;flex-wrap:wrap;gap:14px 44px;align-items:baseline;margin:22px 4px}
+.stat b{font-size:34px;font-weight:650;margin-right:10px;letter-spacing:-.02em}
+.stat span{color:var(--muted)}
+.stat.amber b{color:var(--amber)} .stat.teal b{color:var(--accent)} .stat.bad b{color:var(--bad)}
+.note{margin-left:auto;border-left:1px solid var(--line);padding-left:22px;color:var(--muted);font-size:14px;max-width:440px}
 table{width:100%;border-collapse:collapse}
-th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-size:12px;color:var(--muted);font-weight:600;cursor:pointer;user-select:none;white-space:nowrap}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:600;cursor:pointer;user-select:none;white-space:nowrap}
 tbody tr.click{cursor:pointer}
 tbody tr.click:hover{background:var(--soft)}
-.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;background:var(--soft);color:var(--muted);margin-left:4px;white-space:nowrap}
-.tag.ok{color:var(--ok)} .tag.warn{color:var(--warn)} .tag.bad{color:var(--bad)}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:7px;background:var(--soft);color:var(--muted);white-space:nowrap}
+.tag.ok{background:var(--ok-soft);color:var(--ok)} .tag.amber{background:var(--amber-soft);color:var(--amber)}
+.tag.teal{background:var(--accent-soft);color:var(--accent)} .tag.bad{color:var(--bad)}
 .err{color:var(--bad);margin-top:10px}
-.doc{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
-@media (max-width:980px){.doc{grid-template-columns:1fr}}
-.text{white-space:pre-wrap;overflow-wrap:anywhere;max-height:calc(100vh - 190px);overflow:auto;line-height:1.65}
-.form{max-height:calc(100vh - 190px);overflow:auto}
-mark{color:inherit;border-radius:3px;padding:1px 0;cursor:pointer}
-mark.hot{background:var(--hot)!important;outline:2px solid var(--warn)}
-.grp{margin-bottom:14px}
-.grp h3{font-size:12px;text-transform:uppercase;letter-spacing:.04em;margin:0 0 4px;padding:3px 8px;border-radius:6px;display:inline-block}
-.f{display:grid;grid-template-columns:minmax(120px,42%) 1fr;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer}
-.f:hover,.f.hot{background:var(--soft)}
-.f .k{color:var(--muted)} .f .k code{font-size:11px;opacity:.8}
-.f .v{font-weight:600;overflow-wrap:anywhere}
-.f .v.nu{font-weight:400;color:var(--muted)}
-.g0{background:var(--g0)}.g1{background:var(--g1)}.g2{background:var(--g2)}.g3{background:var(--g3)}.g4{background:var(--g4)}.g5{background:var(--g5)}.g6{background:var(--g6)}.g7{background:var(--g7)}.g8{background:var(--g8)}
-.meter{display:grid;grid-template-columns:minmax(150px,260px) 1fr 90px;gap:10px;align-items:center;padding:4px 0}
-.meter .bar{margin:0}
-.meter span:last-child{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
 .hidden{display:none!important}
-.warnlist{margin:0 0 12px;padding:8px 12px 8px 28px;background:var(--soft);border-radius:8px;color:var(--warn)}
+/* рабочая область проверки */
+.work{display:grid;grid-template-columns:300px minmax(0,1fr) minmax(0,1.05fr);overflow:hidden}
+.work>div{min-width:0}
+.work>div+div{border-left:1px solid var(--line)}
+@media (max-width:1150px){.work{grid-template-columns:240px minmax(0,1fr)}.work .src{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}}
+@media (max-width:720px){.work{grid-template-columns:1fr}.work>div+div{border-left:0;border-top:1px solid var(--line)}}
+.colhead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 22px;border-bottom:1px solid var(--line);font-weight:650;min-height:62px}
+.colhead span{font-weight:400;color:var(--muted);font-size:14px}
+.groups{padding:14px}
+.groups button{display:grid;grid-template-columns:26px 1fr auto;gap:8px;width:100%;text-align:left;border:0;background:none;padding:11px 12px;border-radius:9px;cursor:pointer;color:var(--muted);align-items:center}
+.groups button .n{font-size:13px;opacity:.75}
+.groups button .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:1px}
+.groups button.on{background:var(--accent-soft);color:var(--accent);font-weight:650}
+.groups button:hover{background:var(--soft)}
+.schema{margin:14px 12px 4px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.tools{display:flex;gap:10px;padding:14px 22px;border-bottom:1px solid var(--line)}
+.tools input{flex:1}
+.params{max-height:calc(100vh - 150px);overflow:auto}
+.p{padding:16px 22px;border-bottom:1px solid var(--line);border-left:4px solid transparent}
+.p.active{background:var(--soft)}
+.p .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.p .name{font-weight:700;font-size:16px}
+.p code{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.field{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;margin:9px 0 7px;background:var(--panel)}
+.field:focus-within{outline:2px solid var(--accent);outline-offset:1px}
+.field input{border:0;background:none;flex:1;padding:10px 12px;font-size:16px;outline:0}
+.field .unit{padding:0 12px;color:var(--muted);font-size:14px;white-space:nowrap;border-left:1px solid var(--line)}
+.p .bottom{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:14px;color:var(--muted)}
+.link{border:0;background:none;color:var(--accent);cursor:pointer;padding:0;font-size:14px}
+.link:disabled{color:var(--muted);cursor:default;opacity:.6}
+.check{display:flex;gap:6px;align-items:center;cursor:pointer}
+.confirm{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 22px;background:var(--soft);color:var(--muted);font-size:14px}
+.tabs{display:flex;gap:2px}
+.tabs button{border:0;background:none;padding:6px 12px;border-radius:7px;cursor:pointer;color:var(--muted);font-weight:500}
+.tabs button.on{background:var(--accent-soft);color:var(--accent)}
+.srcbar{display:flex;justify-content:space-between;padding:12px 22px 0;font-size:14px;color:var(--muted)}
+.text{white-space:pre-wrap;overflow-wrap:anywhere;font-family:var(--mono);font-size:14px;line-height:1.75;padding:14px 22px 22px;max-height:calc(100vh - 260px);overflow:auto}
+mark{color:inherit;border-radius:3px;padding:1px 0;cursor:pointer;transition:box-shadow .2s}
+.g0{background:var(--g0)}.g1{background:var(--g1)}.g2{background:var(--g2)}.g3{background:var(--g3)}.g4{background:var(--g4)}.g5{background:var(--g5)}.g6{background:var(--g6)}.g7{background:var(--g7)}.g8{background:var(--g8)}
+.bl0{border-left-color:var(--g0)}.bl1{border-left-color:var(--g1)}.bl2{border-left-color:var(--g2)}.bl3{border-left-color:var(--g3)}.bl4{border-left-color:var(--g4)}.bl5{border-left-color:var(--g5)}.bl6{border-left-color:var(--g6)}.bl7{border-left-color:var(--g7)}.bl8{border-left-color:var(--g8)}
+mark.hot{box-shadow:0 0 0 2px var(--text);animation:pulse 1.1s ease-out 2}
+@keyframes pulse{0%{box-shadow:0 0 0 2px var(--text),0 0 0 0 color-mix(in srgb,var(--accent) 55%,transparent)}100%{box-shadow:0 0 0 2px var(--text),0 0 0 14px transparent}}
+@media (prefers-reduced-motion: reduce){mark.hot{animation:none}.bar i{transition:none}}
+.verify{padding:16px 22px;border-top:1px solid var(--line);background:var(--soft);font-size:14px}
+.verify .caps{display:block;margin-bottom:6px}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-top:18px;color:var(--muted);font-size:14px}
+.docbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}
+.md{width:44px;height:44px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700;font-size:13px}
+.warnlist{margin:14px 0 0;padding:10px 14px 10px 32px;background:var(--amber-soft);border-radius:10px;color:var(--amber)}
+.meter{display:grid;grid-template-columns:minmax(150px,260px) 1fr 90px;gap:12px;align-items:center;padding:5px 0}
+.meter span:last-child{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+h2{font-size:17px;margin:0 0 12px}
+h3.g{font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 4px;padding:3px 9px;border-radius:6px;display:inline-block}
 </style>
 </head>
 <body>
 <header>
-  <h1>Эпикризы → JSON</h1>
-  <nav>
-    <button data-view="batch" class="on">Пакет</button>
-    <button data-view="doc">Документ</button>
-    <button data-view="quality">Качество</button>
-  </nav>
+  <div class="logo">Э</div><div class="brand">эпикриз</div><div class="caps">Research workspace</div>
   <div class="mode">
-    <div class="seg">
-      <button id="m-local" class="on">Локальный режим</button>
-      <button id="m-llm">Локальный режим + YandexGPT</button>
-    </div>
+    <div class="seg"><button id="m-local" class="on">Локальный режим</button><button id="m-llm">Локальный режим + YandexGPT</button></div>
     <div class="hint" id="mode-hint"></div>
   </div>
 </header>
 
 <main>
-<section id="v-batch">
-  <div class="card">
-    <h2>Загрузка эпикризов</h2>
-    <div class="drop" id="drop">
-      <b>Перетащите сюда файлы, папку или архив</b><br>
-      Подходят файлы .md и .txt в любом количестве и архив .zip с датасетом
-      <div class="row center">
-        <button class="btn" id="pick-files">Выбрать файлы</button>
-        <button class="btn" id="pick-dir">Выбрать папку</button>
-        <button class="btn hidden" id="pick-demo">Открытые 100 документов</button>
-      </div>
-    </div>
-    <div class="path">
-      <input type="text" id="path" placeholder="Или путь к папке на этом компьютере, например C:\data\epicrises">
-      <button class="btn primary" id="run-path">Обработать папку</button>
-    </div>
-    <div class="hint" style="margin-top:6px">Путь к папке — самый быстрый способ для тысяч файлов: они читаются напрямую с диска.</div>
-    <input type="file" id="in-files" multiple accept=".md,.txt,.zip" class="hidden">
-    <input type="file" id="in-dir" webkitdirectory multiple class="hidden">
-    <div class="err hidden" id="err"></div>
+  <div class="caps">Структурирование клинических данных</div>
+  <h1>От текста к данным</h1>
+  <p class="lead">Извлекайте, проверяйте и готовьте эпикризы для исследования.</p>
+  <div class="steps">
+    <button data-view="batch" class="on"><span>1</span>Загрузка</button><i></i>
+    <button data-view="doc"><span>2</span>Проверка параметров</button><i></i>
+    <button data-view="export"><span>3</span>Экспорт JSON</button>
   </div>
 
-  <div class="card hidden" id="progress">
-    <div class="row" style="justify-content:space-between">
-      <h2 id="p-title" style="margin:0">Обработка</h2>
-      <div class="row">
-        <button class="btn hidden" id="stop">Остановить</button>
+  <!-- ============ 1. загрузка ============ -->
+  <section id="v-batch">
+    <div class="card pad">
+      <div class="drop" id="drop">
+        <b>Перетащите сюда файлы, папку или архив</b><br>
+        Подходят файлы .md и .txt в любом количестве и архив .zip с датасетом
+        <div class="row" style="justify-content:center;margin-top:14px">
+          <button class="btn" id="pick-files">Выбрать файлы</button>
+          <button class="btn" id="pick-dir">Выбрать папку</button>
+          <button class="btn hidden" id="pick-demo">Открытые 100 документов</button>
+        </div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <input type="text" id="path" style="flex:1" placeholder="Или путь к папке на этом компьютере, например C:\data\epicrises">
+        <button class="btn primary" id="run-path">Обработать папку</button>
+      </div>
+      <div class="hint" style="margin-top:6px">Путь к папке — самый быстрый способ для тысяч файлов: они читаются напрямую с диска.</div>
+      <input type="file" id="in-files" multiple accept=".md,.txt,.zip" class="hidden">
+      <input type="file" id="in-dir" webkitdirectory multiple class="hidden">
+      <div class="err hidden" id="err"></div>
+    </div>
+
+    <div id="progress" class="hidden">
+      <div class="stats" id="b-stats"></div>
+      <div class="card pad">
+        <div class="row between" style="margin-bottom:10px">
+          <b id="p-title">Обработка</b>
+          <div class="row">
+            <button class="btn small hidden" id="stop">Остановить</button>
+            <button class="btn small hidden" id="to-export">Перейти к экспорту</button>
+          </div>
+        </div>
+        <div class="bar"><i id="p-bar"></i></div>
+        <div class="hint" id="p-text" style="margin-top:8px"></div>
+      </div>
+    </div>
+
+    <div class="card hidden" id="list" style="margin-top:18px">
+      <div class="colhead">Документы
+        <div class="row" style="font-weight:400">
+          <label class="check hint"><input type="checkbox" id="only-flag"> только с замечаниями</label>
+          <input type="search" id="search" placeholder="Поиск по имени">
+        </div>
+      </div>
+      <table>
+        <thead><tr><th data-sort="name">Документ</th><th data-sort="filled">Найдено</th><th data-sort="warnings">Замечания</th><th data-sort="verified">Проверено врачом</th><th>Пометки</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="row" style="justify-content:center;padding:12px"><button class="btn small hidden" id="more"></button></div>
+    </div>
+  </section>
+
+  <!-- ============ 2. проверка ============ -->
+  <section id="v-doc" class="hidden">
+    <div class="card pad" id="doc-empty">Сначала загрузите эпикризы на шаге «Загрузка» и откройте документ из таблицы.</div>
+    <div id="doc-body" class="hidden">
+      <div class="card pad">
+        <div class="docbar">
+          <div class="row"><div class="md">MD</div><div><b id="doc-name" style="font-size:18px"></b><div class="hint" id="doc-sub"></div></div></div>
+          <div class="row"><button class="btn" id="prev">← Предыдущий</button><button class="btn" id="next">Следующий →</button></div>
+        </div>
+        <ul class="warnlist hidden" id="doc-warn"></ul>
+      </div>
+      <div class="stats">
+        <div class="stat"><b id="s-found">0</b><span>найдено из 50</span></div>
+        <div class="stat amber"><b id="s-nu">0</b><span>не указано</span></div>
+        <div class="stat teal"><b id="s-ver">0</b><span>проверено врачом</span></div>
+        <div class="note">Проверяйте значения по исходному тексту.<br>Отсутствие данных не означает отсутствие заболевания.</div>
+      </div>
+      <div class="card work">
+        <div>
+          <div class="colhead">Группы параметров <span id="g-count"></span></div>
+          <div class="groups" id="groups"></div>
+        </div>
+        <div>
+          <div class="colhead"><div id="g-title"></div><span id="g-sub"></span></div>
+          <div class="tools">
+            <input type="search" id="p-search" placeholder="Поиск параметра или ключа">
+            <select id="p-filter"><option value="all">Все параметры</option><option value="nu">Не указанные</option><option value="unverified">Непроверенные</option></select>
+          </div>
+          <div class="params">
+            <div id="params"></div>
+            <div class="confirm" id="confirm"><span>Подтвердите значения после сверки</span><button class="btn" id="verify-group">Проверить группу</button></div>
+          </div>
+        </div>
+        <div class="src">
+          <div class="colhead">Исходный документ
+            <div class="tabs"><button id="t-md" class="on">Markdown</button><button id="t-json">JSON</button></div>
+          </div>
+          <div class="srcbar"><span id="src-hint">Цвет подсветки соответствует группе параметров</span><button class="link" id="copy">Копировать</button></div>
+          <div class="text" id="doc-text"></div>
+          <div class="verify"><span class="caps">Сверка с источником</span><span id="src-info">Нажмите «Источник» у параметра, чтобы найти соответствующий фрагмент.</span></div>
+        </div>
+      </div>
+      <div class="foot"><span id="doc-foot"></span><button class="btn primary" id="save">Скачать JSON</button></div>
+    </div>
+  </section>
+
+  <!-- ============ 3. экспорт ============ -->
+  <section id="v-export" class="hidden">
+    <div class="card pad" style="margin-bottom:18px">
+      <div class="row between">
+        <div><h2 style="margin-bottom:4px">Экспорт результата</h2><div class="hint" id="x-hint">Обработайте пакет, чтобы скачать результат.</div></div>
         <a class="btn primary hidden" id="download" download="result.zip">Скачать result.zip</a>
       </div>
+      <div class="hint" style="margin-top:10px">В архиве: <b>result/</b> — JSON по шаблону на каждый эпикриз, с учётом ручных правок; <b>evidence/</b> — цитаты, отметки проверки и исходные значения; <b>review_report.csv</b> — замечания.</div>
     </div>
-    <div class="bar"><i id="p-bar"></i></div>
-    <div class="hint" id="p-text"></div>
-    <div class="tiles" id="tiles"></div>
-  </div>
-
-  <div class="card hidden" id="list">
-    <div class="row" style="justify-content:space-between;margin-bottom:10px">
-      <h2 style="margin:0">Документы</h2>
-      <div class="row">
-        <label class="row" style="gap:5px"><input type="checkbox" id="only-flag"> только с замечаниями</label>
-        <input type="search" id="search" placeholder="Поиск по имени">
-      </div>
+    <div class="card pad" style="margin-bottom:18px">
+      <h2>Совпадение с ручной разметкой</h2>
+      <div class="hint" id="q-hint">Загрузка…</div><div id="q-groups" style="margin-top:8px"></div><div id="q-bad"></div>
     </div>
-    <table>
-      <thead><tr>
-        <th data-sort="name">Документ</th><th data-sort="filled">Заполнено полей</th>
-        <th data-sort="warnings">Замечания</th><th>Пометки</th>
-      </tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
-    <div class="row center"><button class="btn hidden" id="more">Показать ещё</button></div>
-  </div>
-</section>
-
-<section id="v-doc" class="hidden">
-  <div class="card" id="doc-empty">Откройте документ из таблицы на вкладке «Пакет».</div>
-  <div id="doc-body" class="hidden">
-    <div class="row" style="justify-content:space-between;margin-bottom:12px">
-      <div class="row">
-        <button class="btn" id="prev">← Предыдущий</button>
-        <button class="btn" id="next">Следующий →</button>
-        <h2 id="doc-name" style="margin:0 0 0 8px"></h2>
-      </div>
-      <div class="row">
-        <button class="btn" id="copy">Скопировать JSON</button>
-        <button class="btn primary" id="save">Скачать JSON</button>
-      </div>
+    <div class="card pad">
+      <h2>Заполненность параметров в текущем пакете</h2>
+      <div class="hint" id="f-hint">Обработайте пакет, чтобы увидеть, как часто заполнен каждый параметр.</div><div id="f-list"></div>
     </div>
-    <ul class="warnlist hidden" id="doc-warn"></ul>
-    <div class="doc">
-      <div class="card text" id="doc-text"></div>
-      <div class="card form" id="doc-form"></div>
-    </div>
-    <div class="hint">Наведите на поле — в тексте подсветится фрагмент, из которого взято значение. Щелчок прокручивает текст к нему.</div>
-  </div>
-</section>
-
-<section id="v-quality" class="hidden">
-  <div class="card">
-    <h2>Совпадение с ручной разметкой</h2>
-    <div class="hint" id="q-hint">Загрузка…</div>
-    <div id="q-groups"></div>
-    <div id="q-bad"></div>
-  </div>
-  <div class="card">
-    <h2>Заполненность полей в текущем пакете</h2>
-    <div class="hint" id="f-hint">Обработайте пакет, чтобы увидеть, как часто заполнено каждое поле.</div>
-    <div id="f-list"></div>
-  </div>
-</section>
+  </section>
 </main>
 
 <script>
 const LABELS = {
   admission_date:"Дата поступления", discharge_date:"Дата выписки",
-  art_hyper:"Гипертоническая болезнь", atr_fibril:"Фибрилляция предсердий", ckd:"ХБП", copd:"ХОБЛ",
-  diagnosis_icd:"Код МКБ-10", dm:"Сахарный диабет", hf:"ХСН", killip:"Класс Killip",
+  art_hyper:"Гипертоническая болезнь", atr_fibril:"Фибрилляция предсердий", ckd:"Хроническая болезнь почек", copd:"ХОБЛ",
+  diagnosis_icd:"Код МКБ-10", dm:"Сахарный диабет", hf:"Сердечная недостаточность", killip:"Класс Killip",
   mi_localisation:"Локализация инфаркта", tlt:"Тромболизис", type_acs:"Тип ОКС",
-  bmi:"ИМТ", bp:"АД", bpm:"Пульс", height:"Рост", rr:"ЧДД", smoking:"Курение", spo2:"Сатурация", weight:"Масса тела",
-  ecg_avb:"АВ-блокада", ecg_bpm:"ЧСС на ЭКГ", ecg_elevation:"Подъём ST", ecg_rythm:"Ритм",
-  echo_ef:"Фракция выброса", echo_lvd:"КДР ЛЖ", echo_lvd_2:"Левое предсердие", echo_mr:"Митральная регургитация", echo_zone:"Зона гипокинеза",
-  rg_date:"Дата рентгена", rg_pc:"Застой в лёгких",
-  ca_date:"Дата КАГ", ca_fact:"КАГ выполнена", ca_lad:"ПМЖВ", rca:"ПКА",
-  card_trop:"Тропонин", crea:"Креатинин", glu:"Глюкоза", hb:"Гемоглобин", ldl:"ЛПНП", leucocytes:"Лейкоциты", thrombocytes:"Тромбоциты", tot_chol:"Общий холестерин",
+  bmi:"Индекс массы тела", bp:"Артериальное давление", bpm:"Пульс", height:"Рост", rr:"Частота дыхания", smoking:"Курение", spo2:"Сатурация", weight:"Масса тела",
+  ecg_avb:"АВ-блокада", ecg_bpm:"ЧСС на ЭКГ", ecg_elevation:"Подъём сегмента ST", ecg_rythm:"Ритм на ЭКГ",
+  echo_ef:"Фракция выброса", echo_lvd:"КДР левого желудочка", echo_lvd_2:"Размер левого предсердия", echo_mr:"Митральная регургитация", echo_zone:"Зона нарушенной сократимости",
+  rg_date:"Дата рентгенографии", rg_pc:"Застой в лёгких",
+  ca_date:"Дата коронарографии", ca_fact:"Коронарография", ca_lad:"ПМЖВ", rca:"ПКА",
+  card_trop:"Тропонин", crea:"Креатинин", glu:"Глюкоза", hb:"Гемоглобин", ldl:"Холестерин ЛПНП", leucocytes:"Лейкоциты", thrombocytes:"Тромбоциты", tot_chol:"Общий холестерин",
   "2_aag":"Второй антиагрегант", ace_ing_sartan:"иАПФ / сартан", anticoagulant:"Антикоагулянт", aspirin:"Аспирин", bb:"Бета-блокатор", statin:"Статин"
 };
+/* единицы показываются только на экране, в JSON не попадают */
+const UNITS = {bmi:"кг/м²", bp:"мм рт. ст.", bpm:"уд/мин", height:"см", rr:"в мин", spo2:"%", weight:"кг", ecg_bpm:"уд/мин",
+  echo_ef:"%", echo_lvd:"мм", echo_lvd_2:"мм", crea:"мкмоль/л", glu:"ммоль/л", hb:"г/л", ldl:"ммоль/л",
+  leucocytes:"×10⁹/л", thrombocytes:"×10⁹/л", tot_chol:"ммоль/л"};
+const YES = {"1":"признак указан", "0":"нет упоминания или отрицание"};
+const VESSEL = {"0":"сужение менее 50 %", "1":"сужение 50–89 %", "2":"90 % и более или окклюзия"};
+const CODES = {art_hyper:YES, atr_fibril:YES, copd:YES, dm:YES, tlt:YES, ecg_avb:YES, ecg_elevation:YES, ca_lad:VESSEL, rca:VESSEL,
+  type_acs:{STEMI:"с подъёмом ST", NSTEMI:"без подъёма ST", NA:"тип не установлен"},
+  mi_localisation:{A:"передняя", I:"нижняя", L:"боковая", N:"не уточнена"},
+  ca_fact:{Y:"выполнена", R:"документирован отказ", N:"сведений нет"},
+  killip:{"1":"класс I", "2":"класс II", "3":"класс III", "4":"класс IV"}};
 const NU = "не указано";
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const S = {tpl:{}, groupOf:{}, llmOK:false, llm:false, job:null, rows:[], sum:null, sort:{key:"name",dir:1}, shown:200, doc:null, visible:[]};
+const S = {tpl:{}, groups:[], llmOK:false, llm:false, job:null, rows:[], sum:null, sort:{key:"name",dir:1}, shown:200,
+           doc:null, visible:[], group:0, tab:"md", ranges:{}};
 
 async function api(url, body){
   const r = await fetch(url, body === undefined ? {} : {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
@@ -220,18 +300,18 @@ async function api(url, body){
 }
 function showErr(m){ $("err").textContent = m || ""; $("err").classList.toggle("hidden", !m); }
 
-/* ---------- вкладки и режим ---------- */
+/* ---------- шаги и режим ---------- */
 function view(name){
-  for(const v of ["batch","doc","quality"]) $("v-"+v).classList.toggle("hidden", v !== name);
-  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.view === name));
-  if(name === "quality") loadQuality();
+  for(const v of ["batch","doc","export"]) $("v-"+v).classList.toggle("hidden", v !== name);
+  document.querySelectorAll(".steps button").forEach(b => b.classList.toggle("on", b.dataset.view === name));
+  if(name === "export") loadExport();
+  if(name === "batch") renderRows();
 }
-document.querySelectorAll("nav button").forEach(b => b.onclick = () => view(b.dataset.view));
+document.querySelectorAll(".steps button").forEach(b => b.onclick = () => view(b.dataset.view));
 function setMode(llm){
   S.llm = llm && S.llmOK;
   $("m-local").classList.toggle("on", !S.llm); $("m-llm").classList.toggle("on", S.llm);
-  $("mode-hint").textContent = S.llm
-    ? "Незаполненные поля дополнительно проверяет модель в Yandex Cloud"
+  $("mode-hint").textContent = S.llm ? "Незаполненные поля дополнительно проверяет модель в Yandex Cloud"
     : (S.llmOK ? "Документы не покидают компьютер, результат одинаков при каждом запуске"
                : "Документы не покидают компьютер. Для режима с YandexGPT нужен файл .env с ключом");
 }
@@ -241,7 +321,6 @@ $("m-llm").onclick = () => setMode(true);
 /* ---------- загрузка ---------- */
 const toB64 = buf => { let s = ""; const u = new Uint8Array(buf); for(let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
 const wanted = n => /\.(md|txt|zip)$/i.test(n);
-
 async function walk(entry, out){
   if(entry.isFile){ await new Promise(res => entry.file(f => { if(wanted(f.name)) out.push(f); res(); }, res)); }
   else if(entry.isDirectory){
@@ -262,66 +341,61 @@ async function upload(files){
       batch.push({name:f.webkitRelativePath || f.name, b64}); size += b64.length;
       if(batch.length >= 60 || size > 6e6) await flush();
     }
-    await flush();
-    await start(id);
+    await flush(); await start(id);
   }catch(e){ showErr(e.message); $("progress").classList.add("hidden"); }
 }
 async function runPath(path){
   if(!path.trim()) return showErr("Укажите путь к папке");
   showErr(""); startProgress("Чтение папки", 0);
-  try{
-    const {id} = await api("/api/job", {});
-    await api(`/api/job/${id}/path`, {path});
-    await start(id);
-  }catch(e){ showErr(e.message); $("progress").classList.add("hidden"); }
+  try{ const {id} = await api("/api/job", {}); await api(`/api/job/${id}/path`, {path}); await start(id); }
+  catch(e){ showErr(e.message); $("progress").classList.add("hidden"); }
 }
 async function start(id){
   await api(`/api/job/${id}/start`, {llm:S.llm});
-  S.job = id; S.rows = []; S.shown = 200; S.doc = null;
-  $("list").classList.remove("hidden"); $("stop").classList.remove("hidden"); $("download").classList.add("hidden");
+  S.job = id; S.rows = []; S.shown = 200; S.doc = null; S.q = null;
+  $("doc-body").classList.add("hidden"); $("doc-empty").classList.remove("hidden");
+  $("list").classList.remove("hidden"); $("stop").classList.remove("hidden"); $("to-export").classList.add("hidden");
   poll();
 }
 function startProgress(title, total){
-  $("progress").classList.remove("hidden"); $("p-title").textContent = title; $("tiles").innerHTML = ""; progress(0, total, "");
-  $("stop").classList.add("hidden"); $("download").classList.add("hidden");
+  $("progress").classList.remove("hidden"); $("p-title").textContent = title; $("b-stats").innerHTML = ""; progress(0, total, "");
+  $("stop").classList.add("hidden"); $("to-export").classList.add("hidden");
 }
 function progress(done, total, text){ $("p-bar").style.width = (total ? 100 * done / total : 0) + "%"; $("p-text").textContent = text; }
-
+function batchStats(){
+  const s = S.sum; if(!s) return;
+  const verDocs = S.rows.filter(r => r.verified === 50).length, flagged = S.rows.filter(r => r.warnings || r.error).length;
+  const items = [["", s.done, "документов обработано"], [flagged ? "amber" : "", flagged, "на ручную проверку"], ["teal", verDocs, "проверено врачом"]];
+  if(s.errors) items.push(["bad", s.errors, "ошибок обработки"]);
+  $("b-stats").innerHTML = items.map(([c, v, l]) => `<div class="stat ${c}"><b>${v}</b><span>${l}</span></div>`).join("")
+    + `<div class="note">Локальная обработка: ${s.rules_seconds} с` + (s.llm ? `<br>YandexGPT: ${s.llm_seconds} с, обращений ${s.llm_calls}, принято полей ${s.llm_filled} из ${s.llm_asked}` : "") + `</div>`;
+}
 async function poll(){
-  const id = S.job;
-  const s = await api(`/api/job/${id}?since=${S.rows.length}`);
+  const id = S.job, s = await api(`/api/job/${id}?since=${S.rows.length}`);
   if(id !== S.job) return;
   S.rows.push(...s.rows); S.sum = s;
-  const running = s.state === "running";
+  const running = s.state === "running", speed = s.seconds > 0 ? Math.round(s.done / s.seconds) : 0;
   $("p-title").textContent = running ? "Обработка" : (s.state === "stopped" ? "Остановлено" : "Готово");
-  const speed = s.seconds > 0 ? Math.round(s.done / s.seconds) : 0;
   progress(s.done, s.total, `Обработано ${s.done} из ${s.total} · ${s.seconds} с` + (speed ? ` · ${speed} док/с` : "") + (s.skipped ? ` · пропущено файлов другого типа: ${s.skipped}` : ""));
-  const tiles = [
-    ["", s.done, "документов обработано"],
-    ["ok", s.done - s.flagged, "без замечаний"],
-    [s.flagged ? "warn" : "", s.flagged, "на ручную проверку"],
-    [s.errors ? "bad" : "", s.errors, "ошибок обработки"],
-    ["", s.rules_seconds + " с", "локальная обработка"]
-  ];
-  if(s.llm) tiles.push(["", s.llm_seconds + " с", "ожидание YandexGPT"], ["", s.llm_calls, "обращений к модели"], ["", `${s.llm_filled} из ${s.llm_asked}`, "полей принято от модели"]);
-  $("tiles").innerHTML = tiles.map(([c, v, l]) => `<div class="tile ${c}"><b>${esc(v)}</b><span>${l}</span></div>`).join("");
-  renderRows();
+  batchStats(); renderRows();
   if(running) setTimeout(poll, 300);
-  else { $("stop").classList.add("hidden"); const d = $("download"); d.href = `/api/job/${id}/result.zip`; d.classList.remove("hidden"); }
+  else { $("stop").classList.add("hidden"); $("to-export").classList.remove("hidden"); }
 }
 $("stop").onclick = () => api(`/api/job/${S.job}/stop`, {});
+$("to-export").onclick = () => view("export");
 
-/* ---------- таблица ---------- */
+/* ---------- таблица документов ---------- */
 function renderRows(){
   const q = $("search").value.trim().toLowerCase(), only = $("only-flag").checked, {key, dir} = S.sort;
   let rows = S.rows.filter(r => (!q || r.name.toLowerCase().includes(q)) && (!only || r.warnings || r.error));
   rows.sort((a, b) => (a[key] > b[key] ? 1 : a[key] < b[key] ? -1 : 0) * dir);
   S.visible = rows.map(r => r.name);
   $("rows").innerHTML = rows.slice(0, S.shown).map(r => `<tr class="click" data-name="${esc(r.name)}">
-    <td>${esc(r.name)}</td><td>${r.filled} из 50</td>
-    <td>${r.error ? `<span class="tag bad">ошибка</span>` : r.warnings ? `<span class="tag warn">${r.warnings}</span>` : `<span class="tag ok">нет</span>`}</td>
-    <td>${r.llm ? `<span class="tag">YandexGPT: ${r.llm}</span>` : ""}${r.typo ? `<span class="tag">исправлена опечатка</span>` : ""}</td></tr>`).join("")
-    || `<tr><td colspan="4" class="hint">Нет документов по этому фильтру</td></tr>`;
+    <td><b>${esc(r.name)}</b></td><td>${r.filled} из 50</td>
+    <td>${r.error ? `<span class="tag bad">ошибка</span>` : r.warnings ? `<span class="tag amber">${r.warnings}</span>` : `<span class="tag ok">нет</span>`}</td>
+    <td>${r.verified === 50 ? `<span class="tag teal">полностью</span>` : r.verified ? `${r.verified} из 50` : `<span class="hint">—</span>`}</td>
+    <td>${r.edited ? `<span class="tag teal">правок: ${r.edited}</span> ` : ""}${r.llm ? `<span class="tag">YandexGPT: ${r.llm}</span> ` : ""}${r.typo ? `<span class="tag">исправлена опечатка</span>` : ""}</td></tr>`).join("")
+    || `<tr><td colspan="5" class="hint">Нет документов по этому фильтру</td></tr>`;
   $("more").classList.toggle("hidden", rows.length <= S.shown);
   $("more").textContent = `Показать ещё (осталось ${rows.length - S.shown})`;
 }
@@ -330,7 +404,10 @@ $("more").onclick = () => { S.shown += 400; renderRows(); };
 $("search").oninput = $("only-flag").onchange = () => { S.shown = 200; renderRows(); };
 document.querySelectorAll("th[data-sort]").forEach(th => th.onclick = () => { const k = th.dataset.sort; S.sort = {key:k, dir:S.sort.key === k ? -S.sort.dir : 1}; renderRows(); });
 
-/* ---------- документ ---------- */
+/* ---------- проверка параметров ---------- */
+const fields = () => Object.values(S.doc.groups).flatMap(g => Object.entries(g));
+const fieldOf = key => { for(const g of Object.values(S.doc.groups)) if(key in g) return g[key]; };
+const groupIndex = key => S.groups.findIndex(g => key in S.tpl[g]);
 function locate(text, quote){
   const q = quote.replace(/\s*\[[^\]]*\]\s*$/, "").trim();
   if(q.length < 2) return null;
@@ -342,73 +419,140 @@ function locate(text, quote){
   const head = q.slice(0, 40); i = text.indexOf(head);
   return i >= 0 ? [i, i + head.length] : null;
 }
-function badges(ev, key, llmFields){
+function origin(f, key){
   const b = [];
-  if(/исправлена опечатка/.test(ev)) b.push("опечатка исправлена");
-  if(/YandexGPT/.test(ev) || llmFields.includes(key)) b.push("YandexGPT");
-  if(/по коду МКБ-10/.test(ev)) b.push("по коду МКБ-10");
-  return b.map(x => `<span class="tag">${x}</span>`).join("");
+  if("edited_from" in f) b.push(`<span class="tag teal" title="Было: ${esc(f.edited_from)}">изменено вручную</span>`);
+  if(/исправлена опечатка/.test(f.evidence)) b.push(`<span class="tag">опечатка исправлена</span>`);
+  if(/YandexGPT/.test(f.evidence) || S.doc.llm_fields.includes(key)) b.push(`<span class="tag">YandexGPT</span>`);
+  if(/по коду МКБ-10/.test(f.evidence)) b.push(`<span class="tag">по коду МКБ-10</span>`);
+  return b.join(" ");
 }
 async function openDoc(name){
   const d = await api(`/api/job/${S.job}/doc?name=${encodeURIComponent(name)}`);
-  S.doc = d; view("doc"); $("doc-empty").classList.add("hidden"); $("doc-body").classList.remove("hidden");
-  $("doc-name").textContent = name;
+  S.doc = d; S.ranges = {};
+  for(const [k, f] of fields()){ const r = f.evidence ? locate(d.text, f.evidence) : null; if(r) S.ranges[k] = r; }
+  view("doc"); $("doc-empty").classList.add("hidden"); $("doc-body").classList.remove("hidden");
+  $("doc-name").textContent = name + ".md";
+  const i = S.visible.indexOf(name);
+  $("doc-sub").textContent = i >= 0 ? `Документ ${i + 1} из ${S.visible.length} в пакете` : "";
+  $("prev").disabled = i <= 0; $("next").disabled = i < 0 || i >= S.visible.length - 1;
+  $("p-search").value = ""; renderDoc(); renderSource(); $("doc-text").scrollTop = 0;
+  $("src-info").textContent = "Нажмите «Источник» у параметра, чтобы найти соответствующий фрагмент.";
+}
+function renderDoc(){
+  const d = S.doc, all = fields();
+  const found = all.filter(([, f]) => f.value !== NU).length, ver = all.filter(([, f]) => f.verified).length;
+  $("s-found").textContent = found; $("s-nu").textContent = all.length - found; $("s-ver").textContent = ver;
   const warn = d.error ? ["Ошибка обработки: " + d.error] : d.warnings;
   $("doc-warn").innerHTML = warn.map(w => `<li>${esc(w)}</li>`).join(""); $("doc-warn").classList.toggle("hidden", !warn.length);
-  const groups = Object.keys(d.groups), ranges = [];
-  let form = "";
-  groups.forEach((g, gi) => {
-    form += `<div class="grp"><h3 class="g${gi}">${esc(g)}</h3>`;
-    for(const [k, f] of Object.entries(d.groups[g])){
-      const r = f.value !== NU || f.evidence ? locate(d.text, f.evidence) : null;
-      if(r) ranges.push({s:r[0], e:r[1], key:k, g:gi});
-      form += `<div class="f" data-key="${k}"><div class="k">${esc(LABELS[k] || k)} <code>${k}</code></div>
-        <div class="v ${f.value === NU ? "nu" : ""}">${esc(f.value)}${badges(f.evidence, k, d.llm_fields)}</div></div>`;
-    }
-    form += `</div>`;
-  });
-  $("doc-form").innerHTML = form;
-  const cuts = [...new Set([0, d.text.length, ...ranges.flatMap(r => [r.s, r.e])])].sort((a, b) => a - b);
+  $("g-count").textContent = S.groups.length;
+  $("groups").innerHTML = S.groups.map((g, i) => {
+    const fs = Object.values(d.groups[g]), n = fs.filter(f => f.value !== NU).length;
+    return `<button data-g="${i}" class="${i === S.group ? "on" : ""}"><span class="n">${String(i + 1).padStart(2, "0")}</span><span><span class="dot g${i}"></span>${esc(g[0].toUpperCase() + g.slice(1))}</span><span>${n}/${fs.length}</span></button>`;
+  }).join("") + `<div class="schema"><b>Схема исследования</b><br>${S.groups.length} групп · ${all.length} параметров<br>Шаблон организаторов кейса</div>`;
+  const q = $("p-search").value.trim().toLowerCase(), flt = $("p-filter").value;
+  let list = q ? all.filter(([k]) => (LABELS[k] || "").toLowerCase().includes(q) || k.toLowerCase().includes(q))
+               : Object.entries(d.groups[S.groups[S.group]]);
+  if(flt === "nu") list = list.filter(([, f]) => f.value === NU);
+  if(flt === "unverified") list = list.filter(([, f]) => !f.verified);
+  const gname = S.groups[S.group];
+  $("g-title").textContent = q ? "Результаты поиска" : gname[0].toUpperCase() + gname.slice(1);
+  $("g-sub").textContent = `${list.length} ${plural(list.length, "параметр", "параметра", "параметров")}`;
+  $("params").innerHTML = list.map(([k, f]) => {
+    const gi = groupIndex(k), nu = f.value === NU, code = CODES[k] && CODES[k][f.value];
+    const status = f.verified ? `<span class="tag teal">Проверено</span>` : nu ? `<span class="tag amber">Не указано</span>` : `<span class="tag ok">Найдено</span>`;
+    return `<div class="p bl${gi}" data-key="${k}">
+      <div class="top"><div><div class="name">${esc(LABELS[k] || k)}</div><code>${k}</code>${q ? ` <span class="hint">· ${esc(S.groups[gi])}</span>` : ""}</div><div>${origin(f, k)} ${status}</div></div>
+      <div class="field"><input type="text" value="${nu ? "" : esc(f.value)}" placeholder="не указано" aria-label="${esc(LABELS[k] || k)}">${UNITS[k] ? `<span class="unit">${UNITS[k]}</span>` : ""}</div>
+      <div class="bottom"><span>${code ? esc(code) : (nu ? "В тексте не найдено" : "Значение найдено в документе")}</span>
+        <span class="row" style="gap:16px"><label class="check"><input type="checkbox" class="ver" ${f.verified ? "checked" : ""}> проверено</label>
+        <button class="link src-btn" ${S.ranges[k] ? "" : "disabled"}>Источник</button></span></div></div>`;
+  }).join("") || `<div class="p hint">Нет параметров по этому запросу</div>`;
+  $("confirm").classList.toggle("hidden", !!q || !list.length);
+  const allVer = list.length && list.every(([, f]) => f.verified);
+  $("verify-group").textContent = allVer ? "Снять проверку группы" : "Проверить группу";
+  $("doc-foot").textContent = `${ver} из ${all.length} параметров проверено` + (Object.values(d.groups).some(g => Object.values(g).some(f => "edited_from" in f)) ? " · есть ручные правки" : "") + (S.sum && S.sum.llm ? " · режим с YandexGPT" : " · локальный режим");
+}
+const plural = (n, a, b, c) => (n % 10 === 1 && n % 100 !== 11) ? a : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? b : c;
+function docJSON(){ return JSON.stringify(Object.fromEntries(Object.entries(S.doc.groups).map(([g, fs]) => [g, Object.fromEntries(Object.entries(fs).map(([k, f]) => [k, f.value]))])), null, 2); }
+function renderSource(){
+  $("t-md").classList.toggle("on", S.tab === "md"); $("t-json").classList.toggle("on", S.tab === "json");
+  const box = $("doc-text");
+  if(S.tab === "json"){ box.textContent = docJSON(); $("src-hint").textContent = "Результат в формате шаблона — единицы измерения в файл не попадают"; return; }
+  $("src-hint").textContent = "Цвет подсветки соответствует группе параметров";
+  const t = S.doc.text, ranges = Object.entries(S.ranges).map(([key, [s, e]]) => ({s, e, key, g:groupIndex(key)}));
+  const cuts = [...new Set([0, t.length, ...ranges.flatMap(r => [r.s, r.e])])].sort((a, b) => a - b);
   let html = "";
   for(let i = 0; i < cuts.length - 1; i++){
-    const a = cuts[i], b = cuts[i + 1], hit = ranges.filter(r => r.s <= a && r.e >= b), piece = esc(d.text.slice(a, b));
-    html += hit.length ? `<mark class="g${hit[0].g}" data-keys="${hit.map(r => r.key).join(" ")}" title="${hit.map(r => LABELS[r.key] || r.key).join(", ")}">${piece}</mark>` : piece;
+    const a = cuts[i], b = cuts[i + 1], hit = ranges.filter(r => r.s <= a && r.e >= b), piece = esc(t.slice(a, b));
+    html += hit.length ? `<mark class="g${hit[0].g}" data-keys="${hit.map(r => r.key).join(" ")}" title="${esc(hit.map(r => LABELS[r.key] || r.key).join(", "))}">${piece}</mark>` : piece;
   }
-  $("doc-text").innerHTML = html; $("doc-text").scrollTop = 0;
-  const i = S.visible.indexOf(name);
-  $("prev").disabled = i <= 0; $("next").disabled = i < 0 || i >= S.visible.length - 1;
+  box.innerHTML = html;
 }
 const marksOf = key => [...document.querySelectorAll("#doc-text mark")].filter(m => m.dataset.keys.split(" ").includes(key));
-function hot(keys, on){
-  document.querySelectorAll("#doc-text mark.hot, #doc-form .f.hot").forEach(x => x.classList.remove("hot"));
-  if(!on) return;
-  for(const k of keys){ marksOf(k).forEach(m => m.classList.add("hot")); const f = document.querySelector(`#doc-form .f[data-key="${k}"]`); if(f) f.classList.add("hot"); }
+function focusParam(key, scroll){
+  document.querySelectorAll("#doc-text mark.hot, #params .p.active").forEach(x => x.classList.remove("hot", "active"));
+  if(!key) return;
+  const card = document.querySelector(`#params .p[data-key="${key}"]`); if(card) card.classList.add("active");
+  if(S.tab !== "md"){ if(!scroll) return; S.tab = "md"; renderSource(); }
+  const ms = marksOf(key); ms.forEach(m => { m.classList.remove("hot"); void m.offsetWidth; m.classList.add("hot"); });
+  if(scroll && ms[0]){
+    ms[0].scrollIntoView({block:"center", behavior:"smooth"});
+    $("src-info").innerHTML = `<b>${esc(LABELS[key] || key)}</b>: «${esc(S.doc.text.slice(...S.ranges[key]))}»`;
+  }
 }
-$("doc-form").onmouseover = e => { const f = e.target.closest(".f"); if(f) hot([f.dataset.key], true); };
-$("doc-form").onmouseleave = () => hot([], false);
-$("doc-form").onclick = e => { const f = e.target.closest(".f"); if(!f) return; const m = marksOf(f.dataset.key)[0]; if(m){ m.scrollIntoView({block:"center", behavior:"smooth"}); hot([f.dataset.key], true); } };
-$("doc-text").onclick = e => { const m = e.target.closest("mark"); if(!m) return; const keys = m.dataset.keys.split(" "); hot(keys, true); const f = document.querySelector(`#doc-form .f[data-key="${keys[0]}"]`); if(f) f.scrollIntoView({block:"center", behavior:"smooth"}); };
+async function change(url, body){
+  const r = await api(url, {name:S.doc.name, ...body});
+  S.doc.groups = r.groups; S.doc.warnings = r.warnings;
+  const i = S.rows.findIndex(x => x.name === S.doc.name); if(i >= 0) S.rows[i] = r.row;
+  S.q = null; renderDoc(); if(S.tab === "json") renderSource(); batchStats();
+}
+$("groups").onclick = e => { const b = e.target.closest("button[data-g]"); if(!b) return; S.group = +b.dataset.g; $("p-search").value = ""; renderDoc(); $("params").parentElement.scrollTop = 0; };
+$("p-search").oninput = $("p-filter").onchange = renderDoc;
+$("params").addEventListener("mouseover", e => { const p = e.target.closest(".p[data-key]"); if(p) focusParam(p.dataset.key, false); });
+$("params").addEventListener("click", e => {
+  const p = e.target.closest(".p[data-key]"); if(!p) return; const key = p.dataset.key;
+  if(e.target.classList.contains("src-btn")) return focusParam(key, true);
+  if(e.target.classList.contains("ver")) return change(`/api/job/${S.job}/verify`, {keys:[key], on:e.target.checked});
+});
+$("params").addEventListener("change", e => {
+  if(e.target.type !== "text") return;
+  const key = e.target.closest(".p").dataset.key, v = e.target.value.trim() || NU;
+  if(v !== fieldOf(key).value) change(`/api/job/${S.job}/edit`, {key, value:v});
+});
+$("params").addEventListener("keydown", e => { if(e.key === "Enter" && e.target.type === "text") e.target.blur(); });
+$("verify-group").onclick = () => { const fs = Object.entries(S.doc.groups[S.groups[S.group]]); const on = !fs.every(([, f]) => f.verified); change(`/api/job/${S.job}/verify`, {keys:fs.map(([k]) => k), on}); };
+$("doc-text").onclick = e => {
+  const m = e.target.closest("mark"); if(!m) return; const key = m.dataset.keys.split(" ")[0];
+  S.group = groupIndex(key); $("p-search").value = ""; $("p-filter").value = "all"; renderDoc(); focusParam(key, false);
+  const card = document.querySelector(`#params .p[data-key="${key}"]`); if(card) card.scrollIntoView({block:"center", behavior:"smooth"});
+  $("src-info").innerHTML = `<b>${esc(m.title)}</b>: «${esc(S.doc.text.slice(...S.ranges[key]))}»`;
+};
+$("t-md").onclick = () => { S.tab = "md"; renderSource(); };
+$("t-json").onclick = () => { S.tab = "json"; renderSource(); };
 const step = n => { const i = S.visible.indexOf(S.doc.name) + n; if(i >= 0 && i < S.visible.length) openDoc(S.visible[i]); };
 $("prev").onclick = () => step(-1); $("next").onclick = () => step(1);
-const docJSON = () => JSON.stringify(Object.fromEntries(Object.entries(S.doc.groups).map(([g, fs]) => [g, Object.fromEntries(Object.entries(fs).map(([k, f]) => [k, f.value]))])), null, 2);
-$("copy").onclick = async () => { try{ await navigator.clipboard.writeText(docJSON()); $("copy").textContent = "Скопировано"; }catch(e){ $("copy").textContent = "Не удалось скопировать"; } setTimeout(() => $("copy").textContent = "Скопировать JSON", 1500); };
+$("copy").onclick = async () => { try{ await navigator.clipboard.writeText(S.tab === "json" ? docJSON() : S.doc.text); $("copy").textContent = "Скопировано"; }catch(e){ $("copy").textContent = "Не удалось"; } setTimeout(() => $("copy").textContent = "Копировать", 1500); };
 $("save").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([docJSON()], {type:"application/json"})); a.download = S.doc.name + ".json"; a.click(); URL.revokeObjectURL(a.href); };
 
-/* ---------- качество ---------- */
+/* ---------- экспорт и качество ---------- */
 const meter = (label, n, total) => `<div class="meter"><span>${esc(label)}</span><div class="bar"><i style="width:${total ? 100 * n / total : 0}%"></i></div><span>${n} из ${total}</span></div>`;
-async function loadQuality(){
-  if(S.sum && S.sum.done){
-    $("f-hint").textContent = `Документов в пакете: ${S.sum.done}. Низкая заполненность может означать и отсутствие данных в тексте, и незнакомую формулировку.`;
-    $("f-list").innerHTML = Object.entries(S.tpl).map(([g, ks], gi) => `<div class="grp"><h3 class="g${gi}">${esc(g)}</h3>${Object.keys(ks).map(k => meter(LABELS[k] || k, S.sum.fill[k], S.sum.done)).join("")}</div>`).join("");
+async function loadExport(){
+  if(S.job && S.sum && S.sum.done){
+    const s = await api(`/api/job/${S.job}?since=${S.rows.length}`); S.sum = s;
+    $("x-hint").textContent = `Документов: ${s.done} · проверено врачом параметров: ${s.verified_fields} · ручных правок: ${s.edited_fields}`;
+    const d = $("download"); d.href = `/api/job/${S.job}/result.zip`; d.classList.toggle("hidden", s.state === "running");
+    $("f-hint").textContent = "Низкая заполненность может означать и отсутствие данных в тексте, и незнакомую формулировку.";
+    $("f-list").innerHTML = S.groups.map((g, gi) => `<h3 class="g g${gi}">${esc(g)}</h3>${Object.keys(S.tpl[g]).map(k => meter(LABELS[k] || k, s.fill[k], s.done)).join("")}`).join("");
   }
-  if(S.q) return;
+  if(S.quality) return;
   try{
-    const q = S.q = await api("/api/quality");
+    const q = S.quality = await api("/api/quality");
     if(!q.available){ $("q-hint").textContent = "Папки gold и documents не найдены — сверка недоступна."; return; }
     const tot = Object.values(q.groups).reduce((a, [ok, n]) => [a[0] + ok, a[1] + n], [0, 0]);
     $("q-hint").textContent = `Локальный режим, ${q.documents} размеченных вручную документов, точное сравнение строк: совпало ${tot[0]} из ${tot[1]} значений.`;
     $("q-groups").innerHTML = Object.entries(q.groups).map(([g, [ok, n]]) => meter(g, ok, n)).join("");
-    $("q-bad").innerHTML = q.mismatches.length ? `<h2 style="margin-top:14px">Расхождения</h2><table><thead><tr><th>Документ</th><th>Поле</th><th>В разметке</th><th>Программа</th></tr></thead><tbody>${q.mismatches.map(m => `<tr><td>${esc(m.doc)}</td><td>${esc(m.field)}</td><td>${esc(m.gold)}</td><td>${esc(m.got)}</td></tr>`).join("")}</tbody></table>` : "";
+    $("q-bad").innerHTML = q.mismatches.length ? `<h2 style="margin-top:14px">Расхождения</h2><table><thead><tr><th>Документ</th><th>Параметр</th><th>В разметке</th><th>Программа</th></tr></thead><tbody>${q.mismatches.map(m => `<tr><td>${esc(m.doc)}</td><td>${esc(m.field)}</td><td>${esc(m.gold)}</td><td>${esc(m.got)}</td></tr>`).join("")}</tbody></table>` : "";
   }catch(e){ $("q-hint").textContent = e.message; }
 }
 
@@ -429,7 +573,7 @@ drop.addEventListener("drop", async e => {
 });
 (async () => {
   const st = await api("/api/state");
-  S.tpl = st.template; S.llmOK = st.llm_configured;
+  S.tpl = st.template; S.groups = Object.keys(st.template); S.llmOK = st.llm_configured;
   $("m-llm").disabled = !S.llmOK; if(!S.llmOK) $("m-llm").title = "Задайте YC_API_KEY и YC_FOLDER_ID в файле .env";
   $("pick-demo").classList.toggle("hidden", !st.has_documents);
   setMode(false);
