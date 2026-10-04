@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Эпикризы → JSON</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#fff; --line:#dfe3e8; --text:#1a1d21; --muted:#68717d; --accent:#1f6feb; --accent-text:#fff;
+  --ok:#1a7f4b; --warn:#b26a00; --bad:#c62828; --soft:#eef1f5; --hot:#ffe08a;
+  --g0:#dbeafe; --g1:#fde2e2; --g2:#dcf5e3; --g3:#fff1c9; --g4:#e9defc; --g5:#d6f3f5; --g6:#ffe1cc; --g7:#e3ecd0; --g8:#fbdcef;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#14171b; --panel:#1c2026; --line:#2e343c; --text:#e7eaee; --muted:#98a2ae; --accent:#5a9bff; --accent-text:#0d1117;
+    --ok:#5ccb8a; --warn:#f0b24a; --bad:#ff7b72; --soft:#252a31; --hot:#8a6d00;
+    --g0:#1e3a5f; --g1:#5a2a2a; --g2:#1f4a30; --g3:#57460f; --g4:#3d2f66; --g5:#17474c; --g6:#5c3414; --g7:#3a4720; --g8:#59264a;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text)}
+header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+h1{font-size:16px;margin:0;font-weight:650}
+h2{font-size:15px;margin:0 0 10px}
+nav{display:flex;gap:4px}
+nav button,.seg button{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:6px 12px;font:inherit;cursor:pointer}
+nav button{border-radius:8px}
+nav button.on{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+.mode{margin-left:auto;display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+.seg{display:flex}
+.seg button:first-child{border-radius:8px 0 0 8px}
+.seg button:last-child{border-radius:0 8px 8px 0;border-left:0}
+.seg button.on{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+.seg button:disabled{opacity:.5;cursor:not-allowed}
+.hint{font-size:12px;color:var(--muted)}
+main{padding:20px;max-width:1500px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:8px;padding:7px 14px;font:inherit;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+a.btn{text-decoration:none;display:inline-block}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+input[type=text],input[type=search]{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:8px;padding:7px 10px;font:inherit;min-width:0}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:26px 16px;text-align:center;color:var(--muted)}
+.drop.over{border-color:var(--accent);background:var(--soft)}
+.drop b{color:var(--text);font-size:15px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row.center{justify-content:center;margin-top:12px}
+.path{display:flex;gap:8px;margin-top:14px}
+.path input{flex:1}
+.bar{height:10px;background:var(--soft);border-radius:6px;overflow:hidden;margin:10px 0 6px}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.tile{background:var(--soft);border-radius:10px;padding:10px 12px}
+.tile b{display:block;font-size:20px;font-weight:650}
+.tile span{font-size:12px;color:var(--muted)}
+.tile.ok b{color:var(--ok)} .tile.warn b{color:var(--warn)} .tile.bad b{color:var(--bad)}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600;cursor:pointer;user-select:none;white-space:nowrap}
+tbody tr.click{cursor:pointer}
+tbody tr.click:hover{background:var(--soft)}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;background:var(--soft);color:var(--muted);margin-left:4px;white-space:nowrap}
+.tag.ok{color:var(--ok)} .tag.warn{color:var(--warn)} .tag.bad{color:var(--bad)}
+.err{color:var(--bad);margin-top:10px}
+.doc{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:980px){.doc{grid-template-columns:1fr}}
+.text{white-space:pre-wrap;overflow-wrap:anywhere;max-height:calc(100vh - 190px);overflow:auto;line-height:1.65}
+.form{max-height:calc(100vh - 190px);overflow:auto}
+mark{color:inherit;border-radius:3px;padding:1px 0;cursor:pointer}
+mark.hot{background:var(--hot)!important;outline:2px solid var(--warn)}
+.grp{margin-bottom:14px}
+.grp h3{font-size:12px;text-transform:uppercase;letter-spacing:.04em;margin:0 0 4px;padding:3px 8px;border-radius:6px;display:inline-block}
+.f{display:grid;grid-template-columns:minmax(120px,42%) 1fr;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer}
+.f:hover,.f.hot{background:var(--soft)}
+.f .k{color:var(--muted)} .f .k code{font-size:11px;opacity:.8}
+.f .v{font-weight:600;overflow-wrap:anywhere}
+.f .v.nu{font-weight:400;color:var(--muted)}
+.g0{background:var(--g0)}.g1{background:var(--g1)}.g2{background:var(--g2)}.g3{background:var(--g3)}.g4{background:var(--g4)}.g5{background:var(--g5)}.g6{background:var(--g6)}.g7{background:var(--g7)}.g8{background:var(--g8)}
+.meter{display:grid;grid-template-columns:minmax(150px,260px) 1fr 90px;gap:10px;align-items:center;padding:4px 0}
+.meter .bar{margin:0}
+.meter span:last-child{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.hidden{display:none!important}
+.warnlist{margin:0 0 12px;padding:8px 12px 8px 28px;background:var(--soft);border-radius:8px;color:var(--warn)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Эпикризы → JSON</h1>
+  <nav>
+    <button data-view="batch" class="on">Пакет</button>
+    <button data-view="doc">Документ</button>
+    <button data-view="quality">Качество</button>
+  </nav>
+  <div class="mode">
+    <div class="seg">
+      <button id="m-local" class="on">Локальный режим</button>
+      <button id="m-llm">Локальный режим + YandexGPT</button>
+    </div>
+    <div class="hint" id="mode-hint"></div>
+  </div>
+</header>
+
+<main>
+<section id="v-batch">
+  <div class="card">
+    <h2>Загрузка эпикризов</h2>
+    <div class="drop" id="drop">
+      <b>Перетащите сюда файлы, папку или архив</b><br>
+      Подходят файлы .md и .txt в любом количестве и архив .zip с датасетом
+      <div class="row center">
+        <button class="btn" id="pick-files">Выбрать файлы</button>
+        <button class="btn" id="pick-dir">Выбрать папку</button>
+        <button class="btn hidden" id="pick-demo">Открытые 100 документов</button>
+      </div>
+    </div>
+    <div class="path">
+      <input type="text" id="path" placeholder="Или путь к папке на этом компьютере, например C:\data\epicrises">
+      <button class="btn primary" id="run-path">Обработать папку</button>
+    </div>
+    <div class="hint" style="margin-top:6px">Путь к папке — самый быстрый способ для тысяч файлов: они читаются напрямую с диска.</div>
+    <input type="file" id="in-files" multiple accept=".md,.txt,.zip" class="hidden">
+    <input type="file" id="in-dir" webkitdirectory multiple class="hidden">
+    <div class="err hidden" id="err"></div>
+  </div>
+
+  <div class="card hidden" id="progress">
+    <div class="row" style="justify-content:space-between">
+      <h2 id="p-title" style="margin:0">Обработка</h2>
+      <div class="row">
+        <button class="btn hidden" id="stop">Остановить</button>
+        <a class="btn primary hidden" id="download" download="result.zip">Скачать result.zip</a>
+      </div>
+    </div>
+    <div class="bar"><i id="p-bar"></i></div>
+    <div class="hint" id="p-text"></div>
+    <div class="tiles" id="tiles"></div>
+  </div>
+
+  <div class="card hidden" id="list">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <h2 style="margin:0">Документы</h2>
+      <div class="row">
+        <label class="row" style="gap:5px"><input type="checkbox" id="only-flag"> только с замечаниями</label>
+        <input type="search" id="search" placeholder="Поиск по имени">
+      </div>
+    </div>
+    <table>
+      <thead><tr>
+        <th data-sort="name">Документ</th><th data-sort="filled">Заполнено полей</th>
+        <th data-sort="warnings">Замечания</th><th>Пометки</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="row center"><button class="btn hidden" id="more">Показать ещё</button></div>
+  </div>
+</section>
+
+<section id="v-doc" class="hidden">
+  <div class="card" id="doc-empty">Откройте документ из таблицы на вкладке «Пакет».</div>
+  <div id="doc-body" class="hidden">
+    <div class="row" style="justify-content:space-between;margin-bottom:12px">
+      <div class="row">
+        <button class="btn" id="prev">← Предыдущий</button>
+        <button class="btn" id="next">Следующий →</button>
+        <h2 id="doc-name" style="margin:0 0 0 8px"></h2>
+      </div>
+      <div class="row">
+        <button class="btn" id="copy">Скопировать JSON</button>
+        <button class="btn primary" id="save">Скачать JSON</button>
+      </div>
+    </div>
+    <ul class="warnlist hidden" id="doc-warn"></ul>
+    <div class="doc">
+      <div class="card text" id="doc-text"></div>
+      <div class="card form" id="doc-form"></div>
+    </div>
+    <div class="hint">Наведите на поле — в тексте подсветится фрагмент, из которого взято значение. Щелчок прокручивает текст к нему.</div>
+  </div>
+</section>
+
+<section id="v-quality" class="hidden">
+  <div class="card">
+    <h2>Совпадение с ручной разметкой</h2>
+    <div class="hint" id="q-hint">Загрузка…</div>
+    <div id="q-groups"></div>
+    <div id="q-bad"></div>
+  </div>
+  <div class="card">
+    <h2>Заполненность полей в текущем пакете</h2>
+    <div class="hint" id="f-hint">Обработайте пакет, чтобы увидеть, как часто заполнено каждое поле.</div>
+    <div id="f-list"></div>
+  </div>
+</section>
+</main>
+
+<script>
+const LABELS = {
+  admission_date:"Дата поступления", discharge_date:"Дата выписки",
+  art_hyper:"Гипертоническая болезнь", atr_fibril:"Фибрилляция предсердий", ckd:"ХБП", copd:"ХОБЛ",
+  diagnosis_icd:"Код МКБ-10", dm:"Сахарный диабет", hf:"ХСН", killip:"Класс Killip",
+  mi_localisation:"Локализация инфаркта", tlt:"Тромболизис", type_acs:"Тип ОКС",
+  bmi:"ИМТ", bp:"АД", bpm:"Пульс", height:"Рост", rr:"ЧДД", smoking:"Курение", spo2:"Сатурация", weight:"Масса тела",
+  ecg_avb:"АВ-блокада", ecg_bpm:"ЧСС на ЭКГ", ecg_elevation:"Подъём ST", ecg_rythm:"Ритм",
+  echo_ef:"Фракция выброса", echo_lvd:"КДР ЛЖ", echo_lvd_2:"Левое предсердие", echo_mr:"Митральная регургитация", echo_zone:"Зона гипокинеза",
+  rg_date:"Дата рентгена", rg_pc:"Застой в лёгких",
+  ca_date:"Дата КАГ", ca_fact:"КАГ выполнена", ca_lad:"ПМЖВ", rca:"ПКА",
+  card_trop:"Тропонин", crea:"Креатинин", glu:"Глюкоза", hb:"Гемоглобин", ldl:"ЛПНП", leucocytes:"Лейкоциты", thrombocytes:"Тромбоциты", tot_chol:"Общий холестерин",
+  "2_aag":"Второй антиагрегант", ace_ing_sartan:"иАПФ / сартан", anticoagulant:"Антикоагулянт", aspirin:"Аспирин", bb:"Бета-блокатор", statin:"Статин"
+};
+const NU = "не указано";
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const S = {tpl:{}, groupOf:{}, llmOK:false, llm:false, job:null, rows:[], sum:null, sort:{key:"name",dir:1}, shown:200, doc:null, visible:[]};
+
+async function api(url, body){
+  const r = await fetch(url, body === undefined ? {} : {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+  const j = await r.json();
+  if(!r.ok) throw new Error(j.error || "Ошибка запроса");
+  return j;
+}
+function showErr(m){ $("err").textContent = m || ""; $("err").classList.toggle("hidden", !m); }
+
+/* ---------- вкладки и режим ---------- */
+function view(name){
+  for(const v of ["batch","doc","quality"]) $("v-"+v).classList.toggle("hidden", v !== name);
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.view === name));
+  if(name === "quality") loadQuality();
+}
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => view(b.dataset.view));
+function setMode(llm){
+  S.llm = llm && S.llmOK;
+  $("m-local").classList.toggle("on", !S.llm); $("m-llm").classList.toggle("on", S.llm);
+  $("mode-hint").textContent = S.llm
+    ? "Незаполненные поля дополнительно проверяет модель в Yandex Cloud"
+    : (S.llmOK ? "Документы не покидают компьютер, результат одинаков при каждом запуске"
+               : "Документы не покидают компьютер. Для режима с YandexGPT нужен файл .env с ключом");
+}
+$("m-local").onclick = () => setMode(false);
+$("m-llm").onclick = () => setMode(true);
+
+/* ---------- загрузка ---------- */
+const toB64 = buf => { let s = ""; const u = new Uint8Array(buf); for(let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
+const wanted = n => /\.(md|txt|zip)$/i.test(n);
+
+async function walk(entry, out){
+  if(entry.isFile){ await new Promise(res => entry.file(f => { if(wanted(f.name)) out.push(f); res(); }, res)); }
+  else if(entry.isDirectory){
+    const rd = entry.createReader();
+    for(;;){ const batch = await new Promise(res => rd.readEntries(res, () => res([]))); if(!batch.length) break; for(const e of batch) await walk(e, out); }
+  }
+}
+async function upload(files){
+  files = files.filter(f => wanted(f.name));
+  if(!files.length) return showErr("Не найдено ни одного файла .md, .txt или .zip");
+  showErr(""); startProgress("Загрузка файлов", files.length);
+  try{
+    const {id} = await api("/api/job", {});
+    let batch = [], size = 0, sent = 0;
+    const flush = async () => { if(batch.length){ await api(`/api/job/${id}/add`, {files:batch}); sent += batch.length; batch = []; size = 0; progress(sent, files.length, `Загружено ${sent} из ${files.length}`); } };
+    for(const f of files){
+      const b64 = toB64(await f.arrayBuffer());
+      batch.push({name:f.webkitRelativePath || f.name, b64}); size += b64.length;
+      if(batch.length >= 60 || size > 6e6) await flush();
+    }
+    await flush();
+    await start(id);
+  }catch(e){ showErr(e.message); $("progress").classList.add("hidden"); }
+}
+async function runPath(path){
+  if(!path.trim()) return showErr("Укажите путь к папке");
+  showErr(""); startProgress("Чтение папки", 0);
+  try{
+    const {id} = await api("/api/job", {});
+    await api(`/api/job/${id}/path`, {path});
+    await start(id);
+  }catch(e){ showErr(e.message); $("progress").classList.add("hidden"); }
+}
+async function start(id){
+  await api(`/api/job/${id}/start`, {llm:S.llm});
+  S.job = id; S.rows = []; S.shown = 200; S.doc = null;
+  $("list").classList.remove("hidden"); $("stop").classList.remove("hidden"); $("download").classList.add("hidden");
+  poll();
+}
+function startProgress(title, total){
+  $("progress").classList.remove("hidden"); $("p-title").textContent = title; $("tiles").innerHTML = ""; progress(0, total, "");
+  $("stop").classList.add("hidden"); $("download").classList.add("hidden");
+}
+function progress(done, total, text){ $("p-bar").style.width = (total ? 100 * done / total : 0) + "%"; $("p-text").textContent = text; }
+
+async function poll(){
+  const id = S.job;
+  const s = await api(`/api/job/${id}?since=${S.rows.length}`);
+  if(id !== S.job) return;
+  S.rows.push(...s.rows); S.sum = s;
+  const running = s.state === "running";
+  $("p-title").textContent = running ? "Обработка" : (s.state === "stopped" ? "Остановлено" : "Готово");
+  const speed = s.seconds > 0 ? Math.round(s.done / s.seconds) : 0;
+  progress(s.done, s.total, `Обработано ${s.done} из ${s.total} · ${s.seconds} с` + (speed ? ` · ${speed} док/с` : "") + (s.skipped ? ` · пропущено файлов другого типа: ${s.skipped}` : ""));
+  const tiles = [
+    ["", s.done, "документов обработано"],
+    ["ok", s.done - s.flagged, "без замечаний"],
+    [s.flagged ? "warn" : "", s.flagged, "на ручную проверку"],
+    [s.errors ? "bad" : "", s.errors, "ошибок обработки"],
+    ["", s.rules_seconds + " с", "локальная обработка"]
+  ];
+  if(s.llm) tiles.push(["", s.llm_seconds + " с", "ожидание YandexGPT"], ["", s.llm_calls, "обращений к модели"], ["", `${s.llm_filled} из ${s.llm_asked}`, "полей принято от модели"]);
+  $("tiles").innerHTML = tiles.map(([c, v, l]) => `<div class="tile ${c}"><b>${esc(v)}</b><span>${l}</span></div>`).join("");
+  renderRows();
+  if(running) setTimeout(poll, 300);
+  else { $("stop").classList.add("hidden"); const d = $("download"); d.href = `/api/job/${id}/result.zip`; d.classList.remove("hidden"); }
+}
+$("stop").onclick = () => api(`/api/job/${S.job}/stop`, {});
+
+/* ---------- таблица ---------- */
+function renderRows(){
+  const q = $("search").value.trim().toLowerCase(), only = $("only-flag").checked, {key, dir} = S.sort;
+  let rows = S.rows.filter(r => (!q || r.name.toLowerCase().includes(q)) && (!only || r.warnings || r.error));
+  rows.sort((a, b) => (a[key] > b[key] ? 1 : a[key] < b[key] ? -1 : 0) * dir);
+  S.visible = rows.map(r => r.name);
+  $("rows").innerHTML = rows.slice(0, S.shown).map(r => `<tr class="click" data-name="${esc(r.name)}">
+    <td>${esc(r.name)}</td><td>${r.filled} из 50</td>
+    <td>${r.error ? `<span class="tag bad">ошибка</span>` : r.warnings ? `<span class="tag warn">${r.warnings}</span>` : `<span class="tag ok">нет</span>`}</td>
+    <td>${r.llm ? `<span class="tag">YandexGPT: ${r.llm}</span>` : ""}${r.typo ? `<span class="tag">исправлена опечатка</span>` : ""}</td></tr>`).join("")
+    || `<tr><td colspan="4" class="hint">Нет документов по этому фильтру</td></tr>`;
+  $("more").classList.toggle("hidden", rows.length <= S.shown);
+  $("more").textContent = `Показать ещё (осталось ${rows.length - S.shown})`;
+}
+$("rows").onclick = e => { const tr = e.target.closest("tr[data-name]"); if(tr) openDoc(tr.dataset.name); };
+$("more").onclick = () => { S.shown += 400; renderRows(); };
+$("search").oninput = $("only-flag").onchange = () => { S.shown = 200; renderRows(); };
+document.querySelectorAll("th[data-sort]").forEach(th => th.onclick = () => { const k = th.dataset.sort; S.sort = {key:k, dir:S.sort.key === k ? -S.sort.dir : 1}; renderRows(); });
+
+/* ---------- документ ---------- */
+function locate(text, quote){
+  const q = quote.replace(/\s*\[[^\]]*\]\s*$/, "").trim();
+  if(q.length < 2) return null;
+  let i = text.indexOf(q);
+  if(i >= 0) return [i, i + q.length];
+  const rx = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+  let m = null; try{ m = new RegExp(rx).exec(text); }catch(e){}
+  if(m) return [m.index, m.index + m[0].length];
+  const head = q.slice(0, 40); i = text.indexOf(head);
+  return i >= 0 ? [i, i + head.length] : null;
+}
+function badges(ev, key, llmFields){
+  const b = [];
+  if(/исправлена опечатка/.test(ev)) b.push("опечатка исправлена");
+  if(/YandexGPT/.test(ev) || llmFields.includes(key)) b.push("YandexGPT");
+  if(/по коду МКБ-10/.test(ev)) b.push("по коду МКБ-10");
+  return b.map(x => `<span class="tag">${x}</span>`).join("");
+}
+async function openDoc(name){
+  const d = await api(`/api/job/${S.job}/doc?name=${encodeURIComponent(name)}`);
+  S.doc = d; view("doc"); $("doc-empty").classList.add("hidden"); $("doc-body").classList.remove("hidden");
+  $("doc-name").textContent = name;
+  const warn = d.error ? ["Ошибка обработки: " + d.error] : d.warnings;
+  $("doc-warn").innerHTML = warn.map(w => `<li>${esc(w)}</li>`).join(""); $("doc-warn").classList.toggle("hidden", !warn.length);
+  const groups = Object.keys(d.groups), ranges = [];
+  let form = "";
+  groups.forEach((g, gi) => {
+    form += `<div class="grp"><h3 class="g${gi}">${esc(g)}</h3>`;
+    for(const [k, f] of Object.entries(d.groups[g])){
+      const r = f.value !== NU || f.evidence ? locate(d.text, f.evidence) : null;
+      if(r) ranges.push({s:r[0], e:r[1], key:k, g:gi});
+      form += `<div class="f" data-key="${k}"><div class="k">${esc(LABELS[k] || k)} <code>${k}</code></div>
+        <div class="v ${f.value === NU ? "nu" : ""}">${esc(f.value)}${badges(f.evidence, k, d.llm_fields)}</div></div>`;
+    }
+    form += `</div>`;
+  });
+  $("doc-form").innerHTML = form;
+  const cuts = [...new Set([0, d.text.length, ...ranges.flatMap(r => [r.s, r.e])])].sort((a, b) => a - b);
+  let html = "";
+  for(let i = 0; i < cuts.length - 1; i++){
+    const a = cuts[i], b = cuts[i + 1], hit = ranges.filter(r => r.s <= a && r.e >= b), piece = esc(d.text.slice(a, b));
+    html += hit.length ? `<mark class="g${hit[0].g}" data-keys="${hit.map(r => r.key).join(" ")}" title="${hit.map(r => LABELS[r.key] || r.key).join(", ")}">${piece}</mark>` : piece;
+  }
+  $("doc-text").innerHTML = html; $("doc-text").scrollTop = 0;
+  const i = S.visible.indexOf(name);
+  $("prev").disabled = i <= 0; $("next").disabled = i < 0 || i >= S.visible.length - 1;
+}
+const marksOf = key => [...document.querySelectorAll("#doc-text mark")].filter(m => m.dataset.keys.split(" ").includes(key));
+function hot(keys, on){
+  document.querySelectorAll("#doc-text mark.hot, #doc-form .f.hot").forEach(x => x.classList.remove("hot"));
+  if(!on) return;
+  for(const k of keys){ marksOf(k).forEach(m => m.classList.add("hot")); const f = document.querySelector(`#doc-form .f[data-key="${k}"]`); if(f) f.classList.add("hot"); }
+}
+$("doc-form").onmouseover = e => { const f = e.target.closest(".f"); if(f) hot([f.dataset.key], true); };
+$("doc-form").onmouseleave = () => hot([], false);
+$("doc-form").onclick = e => { const f = e.target.closest(".f"); if(!f) return; const m = marksOf(f.dataset.key)[0]; if(m){ m.scrollIntoView({block:"center", behavior:"smooth"}); hot([f.dataset.key], true); } };
+$("doc-text").onclick = e => { const m = e.target.closest("mark"); if(!m) return; const keys = m.dataset.keys.split(" "); hot(keys, true); const f = document.querySelector(`#doc-form .f[data-key="${keys[0]}"]`); if(f) f.scrollIntoView({block:"center", behavior:"smooth"}); };
+const step = n => { const i = S.visible.indexOf(S.doc.name) + n; if(i >= 0 && i < S.visible.length) openDoc(S.visible[i]); };
+$("prev").onclick = () => step(-1); $("next").onclick = () => step(1);
+const docJSON = () => JSON.stringify(Object.fromEntries(Object.entries(S.doc.groups).map(([g, fs]) => [g, Object.fromEntries(Object.entries(fs).map(([k, f]) => [k, f.value]))])), null, 2);
+$("copy").onclick = async () => { try{ await navigator.clipboard.writeText(docJSON()); $("copy").textContent = "Скопировано"; }catch(e){ $("copy").textContent = "Не удалось скопировать"; } setTimeout(() => $("copy").textContent = "Скопировать JSON", 1500); };
+$("save").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([docJSON()], {type:"application/json"})); a.download = S.doc.name + ".json"; a.click(); URL.revokeObjectURL(a.href); };
+
+/* ---------- качество ---------- */
+const meter = (label, n, total) => `<div class="meter"><span>${esc(label)}</span><div class="bar"><i style="width:${total ? 100 * n / total : 0}%"></i></div><span>${n} из ${total}</span></div>`;
+async function loadQuality(){
+  if(S.sum && S.sum.done){
+    $("f-hint").textContent = `Документов в пакете: ${S.sum.done}. Низкая заполненность может означать и отсутствие данных в тексте, и незнакомую формулировку.`;
+    $("f-list").innerHTML = Object.entries(S.tpl).map(([g, ks], gi) => `<div class="grp"><h3 class="g${gi}">${esc(g)}</h3>${Object.keys(ks).map(k => meter(LABELS[k] || k, S.sum.fill[k], S.sum.done)).join("")}</div>`).join("");
+  }
+  if(S.q) return;
+  try{
+    const q = S.q = await api("/api/quality");
+    if(!q.available){ $("q-hint").textContent = "Папки gold и documents не найдены — сверка недоступна."; return; }
+    const tot = Object.values(q.groups).reduce((a, [ok, n]) => [a[0] + ok, a[1] + n], [0, 0]);
+    $("q-hint").textContent = `Локальный режим, ${q.documents} размеченных вручную документов, точное сравнение строк: совпало ${tot[0]} из ${tot[1]} значений.`;
+    $("q-groups").innerHTML = Object.entries(q.groups).map(([g, [ok, n]]) => meter(g, ok, n)).join("");
+    $("q-bad").innerHTML = q.mismatches.length ? `<h2 style="margin-top:14px">Расхождения</h2><table><thead><tr><th>Документ</th><th>Поле</th><th>В разметке</th><th>Программа</th></tr></thead><tbody>${q.mismatches.map(m => `<tr><td>${esc(m.doc)}</td><td>${esc(m.field)}</td><td>${esc(m.gold)}</td><td>${esc(m.got)}</td></tr>`).join("")}</tbody></table>` : "";
+  }catch(e){ $("q-hint").textContent = e.message; }
+}
+
+/* ---------- запуск ---------- */
+$("pick-files").onclick = () => $("in-files").click();
+$("pick-dir").onclick = () => $("in-dir").click();
+$("in-files").onchange = $("in-dir").onchange = e => { upload([...e.target.files]); e.target.value = ""; };
+$("run-path").onclick = () => runPath($("path").value);
+$("path").onkeydown = e => { if(e.key === "Enter") runPath($("path").value); };
+$("pick-demo").onclick = () => { $("path").value = "documents"; runPath("documents"); };
+const drop = $("drop");
+["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", async e => {
+  const items = [...(e.dataTransfer.items || [])].map(i => i.webkitGetAsEntry && i.webkitGetAsEntry()).filter(Boolean);
+  if(items.length){ const out = []; for(const en of items) await walk(en, out); upload(out); }
+  else upload([...e.dataTransfer.files]);
+});
+(async () => {
+  const st = await api("/api/state");
+  S.tpl = st.template; S.llmOK = st.llm_configured;
+  $("m-llm").disabled = !S.llmOK; if(!S.llmOK) $("m-llm").title = "Задайте YC_API_KEY и YC_FOLDER_ID в файле .env";
+  $("pick-demo").classList.toggle("hidden", !st.has_documents);
+  setMode(false);
+})();
+</script>
+</body>
+</html>

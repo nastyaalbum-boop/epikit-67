@@ -15,8 +15,8 @@ HERE = Path(__file__).parent
 ENCODINGS = ("utf-8-sig", "utf-16", "cp1251")
 
 
-def read_text(path):
-    raw = path.read_bytes()
+def decode_bytes(raw):
+    """Байты файла -> текст с автоопределением кодировки."""
     for enc in ENCODINGS:
         try:
             text = raw.decode(enc)
@@ -26,6 +26,10 @@ def read_text(path):
             continue
         return text
     return raw.decode("utf-8", errors="replace")
+
+
+def read_text(path):
+    return decode_bytes(path.read_bytes())
 
 
 def main():

@@ -230,10 +230,10 @@ def _extract(text):
     m = first(BP, text, skip=not_primary)
     if m:
         s = sentence(text, m.start())
-        put("bp", f"{m.group(1)}/{m.group(2)}", s)
-        p = re.search(r"(?:[Пп]ульс|\bPs\b|\bPS\b|ЧСС)\D{0,15}?(\d{2,3})", s)
+        put("bp", f"{m.group(1)}/{m.group(2)}", m.group(0))
+        p = re.search(r"(?:[Пп]ульс|\bPs\b|\bPS\b|ЧСС)\D{0,15}?(\d{2,3})(?:\s*в\s*мин\w*)?", s)
         if p:
-            put("bpm", p.group(1), s)
+            put("bpm", p.group(1), p.group(0))
     else:
         put("bp", NU)
     if "bpm" not in r:
@@ -287,9 +287,10 @@ def _extract(text):
     else:
         m = re.search(r"ритм\s*[:—–-]?\s*([а-яё]+)|([а-яё]+) ритм", low)
         ry = (m.group(1) or m.group(2)) if m else NU
-    put("ecg_rythm", ry, ecg.strip()[:200])
-    m = re.search(r"ЧСС\D{0,12}?(\d{2,3})", ecg)
-    put("ecg_bpm", m.group(1) if m else NU, ecg.strip()[:200] if m else "")
+    rq = re.search(r"синусов\w+(?: ритм\w*)?|ритм\w*\s*[:—–-]?\s*синусов\w+|фибрилляци\w+(?: предсердий)?|мерцательн\w+ аритми\w+|трепетани\w+(?: предсердий)?|\bФП\b|ритм\w*\s*[:—–-]?\s*[а-яё]+|[а-яё]+ ритм\w*", ecg, re.I)
+    put("ecg_rythm", ry, rq.group(0) if rq and ry != NU else "")
+    m = re.search(r"ЧСС\D{0,12}?(\d{2,3})(?:\s*(?:уд\w*\.?\s*(?:/|в)\s*мин\w*|в\s*мин\w*))?", ecg)
+    put("ecg_bpm", m.group(1) if m else NU, m.group(0) if m else "")
     put("ecg_elevation", "0")
     for m in re.finditer(r"[Ээ]леваци\w+|[Пп]одъ[её]м\w*", ecg):
         c = clause(ecg, m.start())
