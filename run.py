@@ -51,7 +51,7 @@ def main():
     evd.mkdir(parents=True, exist_ok=True)
 
     t0, rows, failed = time.time(), [], 0
-    stats = {"calls": 0, "asked": 0, "filled": 0, "errors": 0}
+    stats = {"calls": 0, "asked": 0, "filled": 0, "errors": 0, "seconds": 0.0}
     for p in files:
         try:
             vals, ev = extract(read_text(p))
@@ -59,7 +59,9 @@ def main():
             vals, ev, failed = {}, {}, failed + 1
             rows.append((p.stem, "документ", f"ошибка обработки: {e}"))
         if a.llm and vals:
+            t1 = time.time()
             asked, got, err = llm.fill(vals, ev, read_text(p))
+            stats["seconds"] += time.time() - t1
             stats["calls"] += bool(asked); stats["asked"] += asked; stats["filled"] += got
             if err:
                 stats["errors"] += 1
@@ -79,9 +81,12 @@ def main():
         wr.writerow(["документ", "поле", "замечание"])
         wr.writerows(rows)
     flagged = len({r[0] for r in rows})
-    print(f"обработано {len(files)} документов за {time.time() - t0:.2f} с; "
+    total = time.time() - t0
+    rules = total - stats["seconds"]
+    print(f"обработано {len(files)} документов за {total:.2f} с; "
           f"ошибок обработки: {failed}; на ручную проверку: {flagged} (см. {a.report})")
     if a.llm:
+        print(f"время: правила {rules:.2f} с, YandexGPT {stats['seconds']:.2f} с")
         print(f"YandexGPT: обращений {stats['calls']}, запрошено полей {stats['asked']}, "
               f"принято {stats['filled']}, сбоев {stats['errors']}")
 
