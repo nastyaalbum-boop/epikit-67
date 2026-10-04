@@ -246,14 +246,14 @@ def extract(text):
         if re.search(r"исключ|отказ\w* от|прекратить|рекоменд", s, re.I):
             continue                                   # «курение исключить» — рекомендация
         w = m.group(1).lower()
-        if re.match(r"не курит|никогда|курение отрицает|некурящ", w):
-            v = "не курит"
-        elif re.match(r"бросил|прекратил|курил\w* ранее|бывш", w):
-            v = "бросил курить"
-        elif w == "курение" and re.search(NEG, s, re.I):
-            v = "не курит"
+        if re.match(r"не курит|бросил\w* курить|прекратил\w* курить|курит$", w):
+            v = w.capitalize()                         # формулировка из текста, как в примере организаторов
+        elif re.match(r"никогда|курение отрицает|некурящ", w) or (w == "курение" and re.search(NEG, s, re.I)):
+            v = "Не курит"
+        elif re.match(r"курил\w* ранее|бывш", w):
+            v = "Бросил курить"
         else:
-            v = "курит"
+            v = "Курит"
         put("smoking", v, s)
         break
 
@@ -324,13 +324,19 @@ def extract(text):
     done = re.search(KAG + r"\s*(?:\(|от|—|–|-|:)?\s*" + DATE, text) or \
         re.search(DATE + r"[^.\n]{0,40}(?:выполнен|провед[её]н)\w*[^.\n]{0,30}" + KAG, text) or \
         re.search(KAG + r"[^.\n]{0,30}(?:выполнен|провед[её]н)\w*[^.\n]{0,15}?" + DATE, text)
+    done = done or re.search(DATE + r"\s*(?:г\.?)?[.:,]?\s*" + KAG, text)
+    done_nodate = None
+    for m in re.finditer(r"(?:[Вв]ыполнен|[Пп]ровед[её]н)\w*\s+(?:\w+\s+)?" + KAG + "|" + KAG + r"\s+(?:была\s+)?(?:выполнен|провед[её]н)\w*", text):
+        if not re.search(r"\bне\b|отказ|планир|рекоменд", clause(text, m.start()), re.I):
+            done_nodate = m
+            break
     has_vessels = re.search(LAD + r"\s*[:—–-]|" + RCA + r"\s*[:—–-]", text)
     for k in ("ca_date", "ca_lad", "rca"):
         put(k, NU)
     if refuse and not has_vessels:
         put("ca_fact", "R", refuse.group(0).strip())
-    elif done or has_vessels:
-        put("ca_fact", "Y", (done or has_vessels).group(0))
+    elif done or has_vessels or done_nodate:
+        put("ca_fact", "Y", (done or has_vessels or done_nodate).group(0))
         if done:
             d = next(g for g in done.groups() if g)
             put("ca_date", norm_date(d), done.group(0))
