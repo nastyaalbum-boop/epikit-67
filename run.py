@@ -8,7 +8,7 @@
 import argparse, csv, json, sys, time
 from pathlib import Path
 from extract import extract, NU
-from validate import check
+from validate import check, absent
 import llm
 
 HERE = Path(__file__).parent
@@ -55,16 +55,19 @@ def main():
     evd.mkdir(parents=True, exist_ok=True)
 
     t0, rows, failed = time.time(), [], 0
+    gap_rows, incomplete = [], 0
     stats = {"calls": 0, "asked": 0, "filled": 0, "errors": 0, "seconds": 0.0}
     for p in files:
+        text = ""
         try:
-            vals, ev = extract(read_text(p))
+            text = read_text(p)
+            vals, ev = extract(text)
         except Exception as e:                      # документ не должен ронять пакет
             vals, ev, failed = {}, {}, failed + 1
             rows.append((p.stem, "документ", f"ошибка обработки: {e}"))
         if a.llm and vals:
             t1 = time.time()
-            asked, got, err = llm.fill(vals, ev, read_text(p))
+            asked, got, err = llm.fill(vals, ev, text)
             stats["seconds"] += time.time() - t1
             stats["calls"] += bool(asked); stats["asked"] += asked; stats["filled"] += got
             if err:
@@ -76,19 +79,27 @@ def main():
         (evd / f"{p.stem}.json").write_text(json.dumps(evi, ensure_ascii=False, indent=2), encoding="utf-8")
         if vals:
             flat = {k: v for g in res.values() for k, v in g.items()}
-            for msg in check(flat):
-                field, _, text = msg.partition(": ")
-                rows.append((p.stem, field, text))
+            for msg in check(flat, text):
+                field, _, note = msg.partition(": ")
+                rows.append((p.stem, field, note))
+            gaps = absent(flat, text)
+            if gaps:
+                incomplete += 1
+                gap_rows.append((p.stem, "; ".join(gaps)))
 
     with open(a.report, "w", newline="", encoding="utf-8-sig") as f:
         wr = csv.writer(f, delimiter=";")
         wr.writerow(["документ", "поле", "замечание"])
         wr.writerows(rows)
+        for name, gaps in gap_rows:                  # справочно: этих данных нет в самом документе
+            wr.writerow([name, "нет в документе", gaps])
     flagged = len({r[0] for r in rows})
     total = time.time() - t0
     rules = total - stats["seconds"]
     print(f"обработано {len(files)} документов за {total:.2f} с; "
           f"ошибок обработки: {failed}; на ручную проверку: {flagged} (см. {a.report})")
+    if incomplete:
+        print(f"документов, где части ключевых данных нет в самом тексте: {incomplete}")
     if a.llm:
         print(f"время: правила {rules:.2f} с, YandexGPT {stats['seconds']:.2f} с")
         print(f"YandexGPT: обращений {stats['calls']}, запрошено полей {stats['asked']}, "

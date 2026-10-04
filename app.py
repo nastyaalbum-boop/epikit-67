@@ -12,7 +12,7 @@ from urllib.parse import parse_qs, urlparse
 import llm
 from extract import NU, extract
 from run import decode_bytes
-from validate import check
+from validate import absent, check
 
 HERE = Path(__file__).parent
 TPL = json.loads((HERE / "template.json").read_text(encoding="utf-8"))
@@ -102,8 +102,9 @@ class Job:
             flat = {k: str(vals.get(k) or NU) for k in KEYS}
             doc["notes"] = list(doc["warnings"])            # замечания, не зависящие от значений
             if vals:
-                doc["warnings"] = doc["notes"] + check(flat)
-            doc.update(text=text, values=flat, evidence={k: ev.get(k, "") for k in KEYS})
+                doc["warnings"] = doc["notes"] + check(flat, text)
+            doc.update(text=text, values=flat, evidence={k: ev.get(k, "") for k in KEYS},
+                       gaps=absent(flat, text) if vals else [])
             for k, v in flat.items():
                 self.fill[k] += v != NU
             self.docs[name] = doc
@@ -118,7 +119,8 @@ class Job:
         notes = " ".join(d["evidence"].values())
         return {"name": d["name"], "filled": sum(v != NU for v in d["values"].values()),
                 "warnings": len(d["warnings"]), "error": d["error"], "llm": len(d["llm_fields"]),
-                "typo": "исправлена опечатка" in notes, "verified": len(d["verified"]), "edited": len(d["edited"])}
+                "typo": "исправлена опечатка" in notes, "verified": len(d["verified"]), "edited": len(d["edited"]),
+                "gaps": len(d["gaps"])}
 
     def edit(self, name, key, value):
         """Ручная правка значения: попадает в result, исходное значение сохраняется."""
@@ -132,7 +134,8 @@ class Job:
             del d["edited"][key]
         self.fill[key] += (value != NU) - (old != NU)
         d["values"][key] = value
-        d["warnings"] = d["notes"] + check(d["values"])
+        d["warnings"] = d["notes"] + check(d["values"], d["text"])
+        d["gaps"] = absent(d["values"], d["text"])
         self.rows[self.index[name]] = self.row(d)
 
     def verify(self, name, keys, on):
@@ -152,6 +155,7 @@ class Job:
                 "verified_fields": sum(r["verified"] for r in self.rows),
                 "verified_docs": sum(1 for r in self.rows if r["verified"] == len(KEYS)),
                 "edited_fields": sum(r["edited"] for r in self.rows),
+                "incomplete": sum(1 for r in self.rows if r["gaps"]),
                 "rows": self.rows[since:]}
 
     def nested(self, name, with_evidence=False):
@@ -181,6 +185,8 @@ class Job:
                 for w in d["warnings"]:
                     field, _, msg = w.partition(": ")
                     wr.writerow([name, field, msg] if msg else [name, "документ", field])
+                if d["gaps"]:
+                    wr.writerow([name, "нет в документе", "; ".join(d["gaps"])])
             z.writestr("review_report.csv", "﻿" + report.getvalue())
         return buf.getvalue()
 
@@ -260,7 +266,8 @@ class Handler(BaseHTTPRequestHandler):
                 if not d:
                     return self.send({"error": "документ не найден"}, status=404)
                 return self.send({"name": name, "text": d["text"], "groups": j.nested(name, True),
-                                  "warnings": d["warnings"], "error": d["error"], "llm_fields": d["llm_fields"]})
+                                  "warnings": d["warnings"], "error": d["error"], "llm_fields": d["llm_fields"],
+                                  "gaps": d["gaps"]})
             if parts[3] == "result.zip":
                 return self.send(j.archive(), "application/zip",
                                  extra={"Content-Disposition": 'attachment; filename="result.zip"'})
@@ -320,7 +327,8 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     j.verify(name, data.get("keys", []), bool(data.get("on", True)))
                 d = j.docs[name]
-                return self.send({"row": j.rows[j.index[name]], "warnings": d["warnings"], "groups": j.nested(name, True)})
+                return self.send({"row": j.rows[j.index[name]], "warnings": d["warnings"], "gaps": d["gaps"],
+                                  "groups": j.nested(name, True)})
             if parts[3] == "stop":
                 j.stop = True
                 return self.send({"ok": True})

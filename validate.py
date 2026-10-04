@@ -26,11 +26,30 @@ def _d(v):
         return None
 
 
-def check(v):
+import re
+
+# ключевое поле: (название, признак того, что значение в тексте всё-таки есть)
+KEY = {
+    "admission_date": ("дата поступления", r"(?:поступил\w*|госпитализ\w+|период лечения)\W{0,4}(?:с\s*)?\d{1,2}[./]\d"),
+    "discharge_date": ("дата выписки", r"(?:выписан\w*|выписки)\W{0,4}\d{1,2}[./]\d|\bпо\s+\d{2}\.\d{2}\.\d{4}"),
+    "diagnosis_icd": ("код МКБ-10", r"МКБ|\bI2[0-5]\b"),
+    "bp": ("артериальное давление", r"(?:\bАД\b|давлени\w+)\W{0,4}\d{2,3}\s*(?:/|\\| и )"),
+    "ecg_rythm": ("запись ЭКГ", r"(?:ЭКГ|электрокардиогра\w+)[^\n]{0,80}(?:синусов|фибрилляц|трепетан|ЧСС\W{0,4}\d)"),
+    "card_trop": ("тропонин", r"тропонин"),
+}
+
+
+def absent(v, text=""):
+    """Ключевые поля, которых нет в самом документе (это не ошибка извлечения)."""
+    return [name for k, (name, hint) in KEY.items() if v.get(k, NU) == NU and not re.search(hint, text, re.I)]
+
+
+def check(v, text=None):
+    """Замечания для ручной проверки: противоречия, неправдоподобные значения и возможные пропуски."""
     w = []
-    for k in ("admission_date", "discharge_date", "diagnosis_icd", "bp"):
-        if v.get(k, NU) == NU:
-            w.append(f"{k}: ключевое поле не найдено")
+    for k, (name, hint) in KEY.items():
+        if v.get(k, NU) == NU and (text is None or re.search(hint, text, re.I)):
+            w.append(f"{k}: {name} — значение не извлечено" + ("" if text is None else ", хотя в тексте есть упоминание"))
     adm, dis = _d(v.get("admission_date")), _d(v.get("discharge_date"))
     if adm and dis:
         if dis < adm:
@@ -59,9 +78,10 @@ def check(v):
     if h and m and b and abs(m / (h / 100) ** 2 - b) > 1.5:
         w.append(f"bmi: ИМТ {v['bmi']} не сходится с ростом {v['height']} и весом {v['weight']}")
     t, el, icd = v.get("type_acs"), v.get("ecg_elevation"), v.get("diagnosis_icd", "")
-    if t == "STEMI" and el == "0":
+    has_ecg = v.get("ecg_rythm", NU) != NU               # без записи ЭКГ сравнивать не с чем
+    if has_ecg and t == "STEMI" and el == "0":
         w.append("ecg_elevation: в диагнозе подъём ST, на ЭКГ элевация не найдена")
-    if t in ("NSTEMI", "NA") and el == "1":
+    if has_ecg and el == "1" and (t == "NSTEMI" or icd.startswith("I20")):
         w.append("ecg_elevation: на ЭКГ элевация ST, в диагнозе её нет")
     if (t == "STEMI" and icd in ("I21.4",)) or (t != "NA" and icd.startswith("I20")) or (t == "NA" and icd.startswith("I21")):
         w.append(f"type_acs: тип {t} не согласуется с кодом МКБ {icd}")
@@ -75,8 +95,4 @@ def check(v):
         w.append("ca_date: коронарография выполнена, но дата не найдена")
     if fact != "Y" and (lad != NU or rca != NU):
         w.append("ca_fact: сосуды описаны, а факт коронарографии не «Y»")
-    if v.get("ecg_rythm", NU) == NU:
-        w.append("ecg_rythm: запись ЭКГ не найдена")
-    if v.get("card_trop", NU) == NU:
-        w.append("card_trop: результат тропонина не найден")
     return w

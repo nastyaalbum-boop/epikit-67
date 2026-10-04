@@ -83,6 +83,8 @@ def flag(pattern, scope, neg=NEG):
 # ---------------------------------------------------------------- словари
 LAD = r"(?:ПМЖВ|ПМЖА|ПНА|LAD|[Пп]ередн\w+ (?:межжелудочков\w+|нисходящ\w+) (?:ветв\w+|артери\w+))"
 RCA = r"(?:ПКА|RCA|[Пп]рав\w+ коронарн\w+ артери\w+)"
+ECG_RECORD = (r"синусов\w+ ритм|ритм\w*\s*[:—–-]?\s*синусов|фибрилляц|мерцательн|трепетани|ЧСС\W{0,4}\d{2,3}"
+              r"|(?:эктопическ|узлов|предсердн|идиовентрикулярн|несинусов|желудочков)\w* ритм|ритм\w* (?:ЭКС|кардиостимулятора)")
 # слово «рентген…» как исследование, а не фамилия («Рентгенов»)
 XRAY = r"(?:[Рр]ентгенограф\w+|[Рр]ентгенограмм\w+|[Рр]ентгенологическ\w+|[Рр]ентгеноскоп\w+|[Рр]ентген(?![а-яё])|\bRg\b|R-граф\w+|\bОГК\b)"
 KAG = r"(?:[Кк]оронаро(?:ангио)?графи\w+|КАГ|КВГ|[Кк]оронаровентрикулографи\w+)"
@@ -127,7 +129,35 @@ def vessel(name, text):
     return NU, ""
 
 
+ABBR = ["ИМТ", "ЧДД", "ЧСС", "ФВ", "КДР", "ХСН", "ХБП", "ХОБЛ", "ЭКГ", "МКБ", "ПМЖВ", "ПНА", "ПКА", "КАГ", "АСК",
+        "ЛПНП", "ЛНП", "ОХС", "ФК", "ТЛТ", "ОГК", "ЛЖ", "SpO2", "Killip", "ЭхоКГ"]
+ABBR_RX = re.compile(r"(?<![А-Яа-яЁёA-Za-z])(?:" + "|".join(ABBR) + r")(?![А-Яа-яЁёA-Za-z])", re.I)
+ABBR_MAP = {a.lower(): a for a in ABBR}
+NUM_ABBR = re.compile(r"(?<![А-Яа-яЁёA-Za-z])(ад|лп)(?=\s*[:—–=-]?\s*\d)", re.I)      # «ад 120/80», «лп 44 мм»
+
+
+def canon(text):
+    """«имт», «Имт», «чдд» -> «ИМТ», «ЧДД». Замена той же длины, позиции в тексте сохраняются."""
+    text = ABBR_RX.sub(lambda m: m.group(0) if m.group(0).isupper() and m.group(0).lower() not in ("spo2", "killip", "эхокг")
+                       else ABBR_MAP[m.group(0).lower()], text)
+    return NUM_ABBR.sub(lambda m: m.group(0).upper(), text)
+
+
 def _extract(text):
+    """Разбор по тексту с приведёнными сокращениями; цитаты возвращаются в исходном написании."""
+    norm = canon(text)
+    r, ev = _rules(norm)
+    if norm != text:
+        for k, q in ev.items():
+            note = re.search(r"\s*\[[^\]]*\]\s*$", q)
+            body = q[:note.start()] if note else q
+            i = norm.find(body) if body else -1
+            if i >= 0:
+                ev[k] = text[i:i + len(body)] + (note.group(0) if note else "")
+    return r, ev
+
+
+def _rules(text):
     text = text.replace(" ", " ").replace(" ", " ").replace("\r", "")
     r, ev = {}, {}
 
@@ -145,11 +175,11 @@ def _extract(text):
     # ================= даты эпизода
     grab("admission_date", r"(?:[Пп]оступил[аи]?|[Гг]оспитализирован[аы]?|[Дд]ата (?:поступления|госпитализации))\s*[:—–-]?\s*" + DATE, conv=norm_date)
     grab("discharge_date", r"(?:[Вв]ыписан[аы]?|[Дд]ата выписки)\s*[:—–-]?\s*" + DATE, conv=norm_date)
-    m = re.search(r"\bс\s*" + DATE + r"\s*(?:г\.?\s*)?(?:по|до|—|–|-)\s*" + DATE, text)
+    m = re.search(r"\bс\s*" + DATE + r"\s*(?:г\.?\s*)?(?:по|до|—|–|-)\s*(?:" + DATE + r"|не указан\w*|[—_-]+|\?)", text)
     if m:
         if r["admission_date"] == NU:
             put("admission_date", norm_date(m.group(1)), m.group(0))
-        if r["discharge_date"] == NU:
+        if r["discharge_date"] == NU and m.group(2):
             put("discharge_date", norm_date(m.group(2)), m.group(0))
 
     # ================= диагноз
@@ -264,17 +294,18 @@ def _extract(text):
         break
 
     # ================= ЭКГ (первая запись)
+    # запись ЭКГ узнаём по названному ритму или ЧСС с числом; фразы «контроль ритма», «мониторинг ЭКГ» не подходят
     ecg = ""
     for i, l in enumerate(lines):
         if re.search(r"ЭКГ|[Ээ]лектрокардиогра", l) and not re.search(r"^\s*(?:" + LATER + ")", l, re.I):
-            block = l if re.search(r"ритм|ЧСС|фибрилляц|трепетани", l) else (lines[i + 1] if i + 1 < len(lines) else "")
-            if re.search(r"ритм|ЧСС|фибрилляц|трепетани", block) and not re.search(r"мониторинг|контролировал|наблюдение за ритмом", block):
+            block = l if re.search(ECG_RECORD, l, re.I) else (lines[i + 1] if i + 1 < len(lines) else "")
+            if re.search(ECG_RECORD, block, re.I):
                 ecg = block
                 break
     if not ecg or len(ecg) > 600:
-        # документ без переводов строк: берём три предложения от упоминания ЭКГ
-        for m in re.finditer(r"(?:ЭКГ|[Ээ]лектрокардиогра\w+)[^\n]{0,80}?(?:синусов|ритм|фибрилляц|трепетани|ЧСС)", text):
-            if re.search(r"мониторинг|контролировал|наблюдение за ритмом|" + LATER, text[m.start():m.end()], re.I):
+        # длинная строка или документ без переводов строк: берём три предложения от упоминания ЭКГ
+        for m in re.finditer(r"(?:ЭКГ|[Ээ]лектрокардиогра\w+)[^\n]{0,80}?(?:" + ECG_RECORD + ")", text, re.I):
+            if re.search(r"мониторинг|контрол|наблюдени\w+ за ритм|" + LATER, text[m.start():m.end() + 12], re.I):
                 continue
             ends = [e.end() for e in SENT_END.finditer(text, m.end())][:3]
             ecg = text[m.start():ends[-1] if ends else len(text)]
@@ -287,8 +318,8 @@ def _extract(text):
     elif "трепетани" in low:
         ry = "трепетание предсердий"
     else:
-        m = re.search(r"ритм\s*[:—–-]?\s*([а-яё]+)|([а-яё]+) ритм", low)
-        ry = (m.group(1) or m.group(2)) if m else NU
+        m = re.search(r"((?:эктопическ|узлов|предсердн|идиовентрикулярн|несинусов|желудочков)[а-яё]*) ритм|ритм\w* (экс|кардиостимулятора)", low)
+        ry = (m.group(1) or ("ритм " + m.group(2).upper() if m.group(2) == "экс" else "ритм " + m.group(2))) if m else NU
     rq = re.search(r"синусов\w+(?: ритм\w*)?|ритм\w*\s*[:—–-]?\s*синусов\w+|фибрилляци\w+(?: предсердий)?|мерцательн\w+ аритми\w+|трепетани\w+(?: предсердий)?|\bФП\b|ритм\w*\s*[:—–-]?\s*[а-яё]+|[а-яё]+ ритм\w*", ecg, re.I)
     put("ecg_rythm", ry, rq.group(0) if rq and ry != NU else "")
     m = re.search(r"ЧСС\D{0,12}?(\d{2,3})(?:\s*(?:уд\w*\.?\s*(?:/|в)\s*мин\w*|в\s*мин\w*))?", ecg)

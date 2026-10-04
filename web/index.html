@@ -117,6 +117,7 @@ mark.hot{box-shadow:0 0 0 2px var(--text);animation:pulse 1.1s ease-out 2}
 .foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-top:18px;color:var(--muted);font-size:14px}
 .docbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}
 .md{width:44px;height:44px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700;font-size:13px}
+.gaps{margin:14px 0 0;padding:10px 14px;background:var(--soft);border-radius:10px;color:var(--muted);font-size:14px}
 .warnlist{margin:14px 0 0;padding:10px 14px 10px 32px;background:var(--amber-soft);border-radius:10px;color:var(--amber)}
 .meter{display:grid;grid-template-columns:minmax(150px,260px) 1fr 90px;gap:12px;align-items:center;padding:5px 0}
 .meter span:last-child{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -205,6 +206,7 @@ h3.g{font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 
           <div class="row"><button class="btn" id="prev">← Предыдущий</button><button class="btn" id="next">Следующий →</button></div>
         </div>
         <ul class="warnlist hidden" id="doc-warn"></ul>
+        <div class="gaps hidden" id="doc-gaps"></div>
       </div>
       <div class="stats">
         <div class="stat"><b id="s-found">0</b><span>найдено из 50</span></div>
@@ -365,7 +367,10 @@ function progress(done, total, text){ $("p-bar").style.width = (total ? 100 * do
 function batchStats(){
   const s = S.sum; if(!s) return;
   const verDocs = S.rows.filter(r => r.verified === 50).length, flagged = S.rows.filter(r => r.warnings || r.error).length;
-  const items = [["", s.done, "документов обработано"], [flagged ? "amber" : "", flagged, "на ручную проверку"], ["teal", verDocs, "проверено врачом"]];
+  const gaps = S.rows.filter(r => r.gaps).length;
+  const items = [["", s.done, "документов обработано"], [flagged ? "amber" : "", flagged, "на ручную проверку"]];
+  if(gaps) items.push(["", gaps, "с пропусками в самом документе"]);
+  items.push(["teal", verDocs, "проверено врачом"]);
   if(s.errors) items.push(["bad", s.errors, "ошибок обработки"]);
   $("b-stats").innerHTML = items.map(([c, v, l]) => `<div class="stat ${c}"><b>${v}</b><span>${l}</span></div>`).join("")
     + `<div class="note">Локальная обработка: ${s.rules_seconds} с` + (s.llm ? `<br>YandexGPT: ${s.llm_seconds} с, обращений ${s.llm_calls}, принято полей ${s.llm_filled} из ${s.llm_asked}` : "") + `</div>`;
@@ -394,7 +399,7 @@ function renderRows(){
     <td><b>${esc(r.name)}</b></td><td>${r.filled} из 50</td>
     <td>${r.error ? `<span class="tag bad">ошибка</span>` : r.warnings ? `<span class="tag amber">${r.warnings}</span>` : `<span class="tag ok">нет</span>`}</td>
     <td>${r.verified === 50 ? `<span class="tag teal">полностью</span>` : r.verified ? `${r.verified} из 50` : `<span class="hint">—</span>`}</td>
-    <td>${r.edited ? `<span class="tag teal">правок: ${r.edited}</span> ` : ""}${r.llm ? `<span class="tag">YandexGPT: ${r.llm}</span> ` : ""}${r.typo ? `<span class="tag">исправлена опечатка</span>` : ""}</td></tr>`).join("")
+    <td>${r.edited ? `<span class="tag teal">правок: ${r.edited}</span> ` : ""}${r.gaps ? `<span class="tag" title="Этих данных нет в тексте эпикриза">нет в документе: ${r.gaps}</span> ` : ""}${r.llm ? `<span class="tag">YandexGPT: ${r.llm}</span> ` : ""}${r.typo ? `<span class="tag">исправлена опечатка</span>` : ""}</td></tr>`).join("")
     || `<tr><td colspan="5" class="hint">Нет документов по этому фильтру</td></tr>`;
   $("more").classList.toggle("hidden", rows.length <= S.shown);
   $("more").textContent = `Показать ещё (осталось ${rows.length - S.shown})`;
@@ -445,6 +450,9 @@ function renderDoc(){
   $("s-found").textContent = found; $("s-nu").textContent = all.length - found; $("s-ver").textContent = ver;
   const warn = d.error ? ["Ошибка обработки: " + d.error] : d.warnings;
   $("doc-warn").innerHTML = warn.map(w => `<li>${esc(w)}</li>`).join(""); $("doc-warn").classList.toggle("hidden", !warn.length);
+  const gaps = d.gaps || [];
+  $("doc-gaps").innerHTML = `<b>В тексте эпикриза нет:</b> ${esc(gaps.join(", "))}. Это пропуск в документе, а не ошибка извлечения.`;
+  $("doc-gaps").classList.toggle("hidden", !gaps.length);
   $("g-count").textContent = S.groups.length;
   $("groups").innerHTML = S.groups.map((g, i) => {
     const fs = Object.values(d.groups[g]), n = fs.filter(f => f.value !== NU).length;
@@ -503,7 +511,7 @@ function focusParam(key, scroll){
 }
 async function change(url, body){
   const r = await api(url, {name:S.doc.name, ...body});
-  S.doc.groups = r.groups; S.doc.warnings = r.warnings;
+  S.doc.groups = r.groups; S.doc.warnings = r.warnings; S.doc.gaps = r.gaps;
   const i = S.rows.findIndex(x => x.name === S.doc.name); if(i >= 0) S.rows[i] = r.row;
   S.q = null; renderDoc(); if(S.tab === "json") renderSource(); batchStats();
 }
