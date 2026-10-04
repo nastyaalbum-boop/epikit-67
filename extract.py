@@ -125,7 +125,7 @@ def vessel(name, text):
     return NU, ""
 
 
-def extract(text):
+def _extract(text):
     text = text.replace(" ", " ").replace(" ", " ").replace("\r", "")
     r, ev = {}, {}
 
@@ -375,4 +375,25 @@ def extract(text):
             put(key, re.sub(r"[Аа]цетилсалицилов\w+ кислот\w+", "АСК", hit), hit)
         else:
             put(key, hit or NU, hit or "")
+    return r, ev
+
+
+EMPTY = {"type_acs": "NA", "mi_localisation": "N", "ca_fact": "N"}
+
+
+def extract(text):
+    """Основной проход, затем запасной — по тексту с исправленными опечатками в ключевых словах.
+    Значение из запасного прохода берётся, если оно отличается и не пустое."""
+    from typo import fix
+    r, ev = _extract(text)
+    fixed = fix(text)
+    if fixed != text:
+        r2, ev2 = _extract(fixed)
+        for k, v in r2.items():
+            empty = (NU, "0", EMPTY.get(k))
+            if v != r[k] and not (v in empty and r[k] not in empty):
+                r[k], ev[k] = v, (ev2.get(k, "") + " [исправлена опечатка в исходном тексте]").strip()
+        if r["ca_fact"] != "Y":
+            for k in ("ca_date", "ca_lad", "rca"):
+                r[k], ev[k] = NU, ""
     return r, ev
