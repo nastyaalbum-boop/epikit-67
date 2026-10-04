@@ -3,6 +3,7 @@
 from extract import extract
 
 CASES = [
+ ("Артериальное давление: 150 на 95 мм рт. ст., пульс 80 в минуту", "bp", "150/95"),
  # случаи из пакета на 1000 документов
  ("Рост 170 см, масса тела 81 кг, имт 28,1 кг/м².", "bmi", "28.1"),
  ("Рост 170 см, масса тела 81 кг, Имт 28,1 кг/м².", "bmi", "28.1"),
@@ -114,8 +115,8 @@ from validate import absent, check
 V = lambda text: (lambda v: (check(v, text), absent(v, text)))({k: str(x) for k, x in extract(text)[0].items()})
 w, g = V("Поступил 01.02.2021. Выписан: не указана.\nОсновной диагноз: ИБС. Нестабильная стенокардия.")
 assert not any("discharge" in x or "diagnosis_icd" in x for x in w) and "дата выписки" in g and "код МКБ-10" in g, (w, g)
-w, g = V("Поступил 01.02.2021. Выписан 09.02.2021. Код МКБ-10 I21.0.\nАртериальное давление: 150 на 95.")
-assert any(x.startswith("bp:") for x in w), w          # давление в тексте есть, но не извлечено — это на проверку
+w, g = V("Поступил 01.02.2021. Выписан 09.02.2021.\nОсновной диагноз: ИБС. Нестабильная стенокардия. Код по МКБ уточняется.")
+assert any(x.startswith("diagnosis_icd:") for x in w) and "код МКБ-10" not in g, (w, g)   # упомянут, но не извлечён — на проверку
 
 bad = 0
 for text, key, want in CASES:
