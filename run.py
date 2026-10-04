@@ -9,6 +9,7 @@ import argparse, csv, json, sys, time
 from pathlib import Path
 from extract import extract, NU
 from validate import check
+import llm
 
 HERE = Path(__file__).parent
 ENCODINGS = ("utf-8-sig", "utf-16", "cp1251")
@@ -33,7 +34,10 @@ def main():
     ap.add_argument("--output", default="result", help="папка для JSON")
     ap.add_argument("--evidence", default="evidence", help="папка для JSON с цитатами")
     ap.add_argument("--report", default="review_report.csv", help="список анкет для ручной проверки")
+    ap.add_argument("--llm", action="store_true", help="дозаполнять пустые поля через YandexGPT (нужны YC_API_KEY и YC_FOLDER_ID)")
     a = ap.parse_args()
+    if a.llm and not llm.configured():
+        sys.exit("Для --llm задайте YC_API_KEY и YC_FOLDER_ID в переменных окружения или в файле .env")
 
     tpl = json.loads((HERE / "template.json").read_text(encoding="utf-8"))
     src = Path(a.input)
@@ -47,12 +51,19 @@ def main():
     evd.mkdir(parents=True, exist_ok=True)
 
     t0, rows, failed = time.time(), [], 0
+    stats = {"calls": 0, "asked": 0, "filled": 0, "errors": 0}
     for p in files:
         try:
             vals, ev = extract(read_text(p))
         except Exception as e:                      # документ не должен ронять пакет
             vals, ev, failed = {}, {}, failed + 1
             rows.append((p.stem, "документ", f"ошибка обработки: {e}"))
+        if a.llm and vals:
+            asked, got, err = llm.fill(vals, ev, read_text(p))
+            stats["calls"] += bool(asked); stats["asked"] += asked; stats["filled"] += got
+            if err:
+                stats["errors"] += 1
+                rows.append((p.stem, "документ", f"YandexGPT недоступен, оставлен результат правил: {err[:150]}"))
         res = {g: {k: str(vals.get(k) or NU) for k in ks} for g, ks in tpl.items()}
         evi = {g: {k: {"value": res[g][k], "evidence": ev.get(k, "")} for k in ks} for g, ks in tpl.items()}
         (out / f"{p.stem}.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -70,6 +81,9 @@ def main():
     flagged = len({r[0] for r in rows})
     print(f"обработано {len(files)} документов за {time.time() - t0:.2f} с; "
           f"ошибок обработки: {failed}; на ручную проверку: {flagged} (см. {a.report})")
+    if a.llm:
+        print(f"YandexGPT: обращений {stats['calls']}, запрошено полей {stats['asked']}, "
+              f"принято {stats['filled']}, сбоев {stats['errors']}")
 
 
 if __name__ == "__main__":
