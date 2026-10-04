@@ -232,7 +232,7 @@ h3.g{font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 
         </div>
         <div class="src">
           <div class="colhead">Исходный документ
-            <div class="tabs"><button id="t-md" class="on">Markdown</button><button id="t-json">JSON</button></div>
+            <div class="tabs"><button id="t-md" class="on">Markdown</button><button id="t-json">JSON</button><button id="t-llm" class="hidden">Запрос к модели</button></div>
           </div>
           <div class="srcbar"><span id="src-hint">Цвет подсветки соответствует группе параметров</span><button class="link" id="copy">Копировать</button></div>
           <div class="text" id="doc-text"></div>
@@ -313,7 +313,7 @@ document.querySelectorAll(".steps button").forEach(b => b.onclick = () => view(b
 function setMode(llm){
   S.llm = llm && S.llmOK;
   $("m-local").classList.toggle("on", !S.llm); $("m-llm").classList.toggle("on", S.llm);
-  $("mode-hint").textContent = S.llm ? "Незаполненные поля дополнительно проверяет модель в Yandex Cloud"
+  $("mode-hint").textContent = S.llm ? "В Yandex Cloud уходят только обезличенные фрагменты для пустых и спорных полей"
     : (S.llmOK ? "Документы не покидают компьютер, результат одинаков при каждом запуске"
                : "Документы не покидают компьютер. Для режима с YandexGPT нужен файл .env с ключом");
 }
@@ -484,8 +484,11 @@ function renderDoc(){
 const plural = (n, a, b, c) => (n % 10 === 1 && n % 100 !== 11) ? a : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? b : c;
 function docJSON(){ return JSON.stringify(Object.fromEntries(Object.entries(S.doc.groups).map(([g, fs]) => [g, Object.fromEntries(Object.entries(fs).map(([k, f]) => [k, f.value]))])), null, 2); }
 function renderSource(){
-  $("t-md").classList.toggle("on", S.tab === "md"); $("t-json").classList.toggle("on", S.tab === "json");
+  const sent = S.doc.llm_sent || "";
+  $("t-llm").classList.toggle("hidden", !sent); if(S.tab === "llm" && !sent) S.tab = "md";
+  $("t-md").classList.toggle("on", S.tab === "md"); $("t-json").classList.toggle("on", S.tab === "json"); $("t-llm").classList.toggle("on", S.tab === "llm");
   const box = $("doc-text");
+  if(S.tab === "llm"){ box.textContent = sent; $("src-hint").textContent = "Это всё, что было отправлено в YandexGPT: фрагменты без ФИО, даты рождения и номеров"; return; }
   if(S.tab === "json"){ box.textContent = docJSON(); $("src-hint").textContent = "Результат в формате шаблона — единицы измерения в файл не попадают"; return; }
   $("src-hint").textContent = "Цвет подсветки соответствует группе параметров";
   const t = S.doc.text, ranges = Object.entries(S.ranges).map(([key, [s, e]]) => ({s, e, key, g:groupIndex(key)}));
@@ -538,9 +541,10 @@ $("doc-text").onclick = e => {
 };
 $("t-md").onclick = () => { S.tab = "md"; renderSource(); };
 $("t-json").onclick = () => { S.tab = "json"; renderSource(); };
+$("t-llm").onclick = () => { S.tab = "llm"; renderSource(); };
 const step = n => { const i = S.visible.indexOf(S.doc.name) + n; if(i >= 0 && i < S.visible.length) openDoc(S.visible[i]); };
 $("prev").onclick = () => step(-1); $("next").onclick = () => step(1);
-$("copy").onclick = async () => { try{ await navigator.clipboard.writeText(S.tab === "json" ? docJSON() : S.doc.text); $("copy").textContent = "Скопировано"; }catch(e){ $("copy").textContent = "Не удалось"; } setTimeout(() => $("copy").textContent = "Копировать", 1500); };
+$("copy").onclick = async () => { try{ await navigator.clipboard.writeText(S.tab === "json" ? docJSON() : S.tab === "llm" ? S.doc.llm_sent : S.doc.text); $("copy").textContent = "Скопировано"; }catch(e){ $("copy").textContent = "Не удалось"; } setTimeout(() => $("copy").textContent = "Копировать", 1500); };
 $("save").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([docJSON()], {type:"application/json"})); a.download = S.doc.name + ".json"; a.click(); URL.revokeObjectURL(a.href); };
 
 /* ---------- экспорт и качество ---------- */

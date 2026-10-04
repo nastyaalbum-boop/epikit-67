@@ -1,7 +1,8 @@
 """Запасной путь через YandexGPT (включается флагом --llm).
 
-Модель вызывается только для полей, которые правила оставили пустыми, хотя в тексте есть
-намёк на значение. Ответ принимается, только если модель привела цитату, которая дословно
+Модель вызывается для полей, которые правила оставили пустыми, хотя в тексте есть намёк
+на значение, и для полей, отмеченных самопроверкой. В облако уходит не весь эпикриз, а только
+строки с намёком на эти поля; ФИО, дата рождения, номера и фамилии врачей заменяются метками. Ответ принимается, только если модель привела цитату, которая дословно
 есть в исходном тексте, и значение проходит проверку формата. Иначе остаётся «не указано».
 
 Настройка — переменные окружения или файл .env рядом с программой:
@@ -11,6 +12,8 @@
 """
 import json, os, re, time, urllib.error, urllib.request
 from pathlib import Path
+
+from extract import ECG_RECORD
 
 NU = "не указано"
 URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
@@ -64,7 +67,9 @@ NUMERIC_QUOTE = {k for k, v in FIELDS.items() if v[3] in (NUMBER, r"\d{2,3}", r"
 SYSTEM = ("Ты извлекаешь данные из кардиологического выписного эпикриза. Отвечай только JSON-объектом без пояснений. "
           "Для каждого запрошенного поля верни {\"value\": \"...\", \"quote\": \"...\"}, где quote — дословный фрагмент "
           "эпикриза, из которого взято значение. Ничего не вычисляй и не додумывай. Если значения в тексте нет, "
-          "верни {\"value\": \"не указано\", \"quote\": \"\"}. Числа — без единиц, с десятичной точкой.")
+          "верни {\"value\": \"не указано\", \"quote\": \"\"}. Числа — без единиц, с десятичной точкой. "
+          "Тебе дан не весь документ, а отдельные фрагменты; личные данные заменены метками в квадратных скобках — "
+          "не включай метки в цитаты.")
 
 
 def load_env():
@@ -108,9 +113,33 @@ def yandex_call(system, user, timeout=60):
     raise RuntimeError(last)
 
 
+PRECISE = {
+    "admission_date": r"(?:поступил\w*|госпитализ\w+|период лечения)\W{0,4}(?:с\s*)?\d{1,2}[./]\d",
+    "discharge_date": r"(?:выписан\w*|выписки)\W{0,4}\d{1,2}[./]\d|\bпо\s+\d{2}\.\d{2}\.\d{4}",
+    "bp": r"(?:\bАД\b|давлени\w+)\W{0,4}\d{2,3}\s*(?:/|\\| и | на )",
+    "bpm": r"(?:пульс\w*|\bPs\b)\W{0,6}\d{2,3}",
+    "rr": r"(?:ЧДД|\bЧД\b|частот\w+ дыхан\w+)[^\n.;]{0,20}\d",
+    "ecg_bpm": r"(?:ЭКГ|электрокардиогра\w+)[^\n]{0,120}ЧСС\W{0,4}\d",
+    "ecg_rythm": r"(?:ЭКГ|электрокардиогра\w+)[^\n]{0,80}(?:" + ECG_RECORD + ")",
+    "rg_pc": r"заст[оя]\w* в (?:л[её]гк|мал)|от[её]к\w* л[её]гк|интерстициальн\w+ от[её]к",
+    "smoking": r"кур(?:ит|ил|ящ|ильщ)\w*(?![^.\n]*исключ)|стаж курения",
+}
+NO_DIGIT = {"smoking", "ecg_rythm", "echo_zone", "rg_pc", "card_trop", "aspirin", "2_aag", "anticoagulant", "ace_ing_sartan", "bb", "statin"}
+
+
+def hinted(key, text):
+    """Есть ли в тексте признак того, что значение поля действительно записано."""
+    if key in PRECISE:
+        return bool(re.search(PRECISE[key], text, re.I))
+    hint = FIELDS[key][0]
+    if key in NO_DIGIT:
+        return bool(re.search(hint, text, re.I))
+    return bool(re.search(r"(?:" + hint + r")[^\n.;]{0,70}\d", text, re.I))
+
+
 def missing_fields(values, text):
     """Поля, которые правила не заполнили, хотя в тексте есть намёк на значение."""
-    out = [k for k, (hint, *_) in FIELDS.items() if values.get(k) == NU and re.search(hint, text, re.I)]
+    out = [k for k in FIELDS if values.get(k) == NU and hinted(k, text)]
     if values.get("ca_fact") != "Y":                 # без выполненной коронарографии дату и сосуды не спрашиваем
         out = [k for k in out if k not in ("ca_date", "ca_lad", "rca")]
     return out
@@ -139,29 +168,115 @@ def _accept(key, value, quote, text):
     return value, quote
 
 
-def fill(values, evidence, text, call=yandex_call):
-    """Дозаполняет пустые поля. Возвращает (сколько полей спрошено, сколько принято, ошибка или None)."""
+# ---------------------------------------------------------------- защита персональных данных
+LABEL = r"(?:Пациент(?:ка)?|Больн(?:ой|ая)|Ф\.?\s?И\.?\s?О\.?|ФИО)"
+NAME_WORD = r"[А-ЯЁA-Z][а-яёa-z]+(?:-[А-ЯЁA-Z][а-яёa-z]+)?"
+DATE_RX = r"\d{1,2}[./-]\d{1,2}[./-]\d{2,4}"
+
+
+def patient_names(text):
+    """Слова из ФИО пациента в шапке документа."""
+    out = []
+    for m in re.finditer(LABEL + r"\s*[:—–-]?\s*((?:" + NAME_WORD + r"\s*){1,4})", text):
+        out += re.findall(NAME_WORD, m.group(1))
+    return [w for w in dict.fromkeys(out) if w.lower() not in ("пациент", "пациентка", "больной", "больная")]
+
+
+def mask(text, names=()):
+    """Заменяет идентификаторы метками. Имена берутся из шапки всего документа, а не только из фрагмента."""
+    for w in sorted(names, key=len, reverse=True):
+        tail = r"\w{0,3}" if len(w) > 3 else ""
+        text = re.sub(r"(?<![А-Яа-яЁёA-Za-z])" + re.escape(w) + tail + r"(?![А-Яа-яЁёA-Za-z])", "[ПАЦИЕНТ]", text)
+    text = re.sub(r"(?:\[ПАЦИЕНТ\][\s,]*){2,}", "[ПАЦИЕНТ] ", text)
+    rules = [
+        (r"((?:д\.\s?р\.|дата рождения|год рождения|родил\w+)\s*[:—–-]?\s*)(?:" + DATE_RX + r"|\d{4})(?:\s*г\.?р?\.?)?", r"\1[ДАТА РОЖДЕНИЯ]"),
+        (DATE_RX + r"\s*г\.?\s?р\.", "[ДАТА РОЖДЕНИЯ]"),
+        (r"((?:истори\w+ болезни|медицинск\w+ карт\w+|карт\w+|№ истории болезни)\s*(?:№|N|#)?\s*)\d[\d/-]*", r"\1[НОМЕР]"),
+        (r"(№\s*)\d{4,}", r"\1[НОМЕР]"),
+        (r"((?:[Лл]ечащий врач|[Вв]рач|[Зз]ав\w*\.? отделением|[Кк]ардиолог)\s*[:—–-]\s*)" + NAME_WORD + r"(?:\s+[А-ЯЁ]\.\s?[А-ЯЁ]\.|(?:\s+" + NAME_WORD + r"){1,2})?", r"\1[ВРАЧ]"),
+        (NAME_WORD + r"\s+[А-ЯЁ]\.\s?[А-ЯЁ]\.(?![а-яё])", "[ФИО]"),
+        (r"((?:[Аа]дрес\w*|[Пп]роживает|[Мм]есто жительства|[Мм]есто работы)(?: регистрации| проживания)?\s*[:—–-]?\s*(?:по адресу\s*:?\s*)?)[^\n;]{3,160}", r"\1[АДРЕС]"),
+        (r"(?:\+7|8)[\s(-]*\d{3}[\s)-]*\d{3}[\s-]*\d{2}[\s-]*\d{2}", "[ТЕЛЕФОН]"),
+        (r"\b\d{3}-\d{3}-\d{3}[\s-]\d{2}\b", "[СНИЛС]"),
+        (r"((?:полис\w*|СНИЛС|паспорт\w*)\s*(?:ОМС|ДМС)?\s*(?:№|N)?\s*[:—–-]?\s*)[\d\s-]{6,}", r"\1[НОМЕР]"),
+        (r"[\w.+-]+@[\w-]+\.[\w.-]+", "[ПОЧТА]"),
+    ]
+    for rx, rep in rules:
+        text = re.sub(rx, rep, text)
+    return text
+
+
+def fragment(text, keys, limit=1200):
+    """Только те строки эпикриза, где есть намёк на запрошенные поля (с заголовком раздела)."""
+    lines = text.split("\n")
+    pick = set()
+    for k in keys:
+        size = 0
+        for i, l in enumerate(lines):
+            if not re.search(FIELDS[k][0], l, re.I):
+                continue
+            block = [i]
+            if len(l.strip()) < 70 and not re.search(r"\d", l):      # строка-заголовок: берём абзац под ней
+                j = i + 1
+                while j < len(lines) and lines[j].strip() and j - i <= 3:
+                    block.append(j)
+                    j += 1
+            size += sum(len(lines[b]) for b in block)
+            pick.update(block)
+            if size > limit:
+                break
+    out = []
+    for i in sorted(pick):
+        l = lines[i].strip()
+        if len(l) > limit:                                            # документ одной строкой: предложения с намёком
+            sents = re.split(r"(?<=[.!?;])\s+(?=[А-ЯЁA-Z\d])", l)
+            hit = [n for n, s in enumerate(sents) if any(re.search(FIELDS[k][0], s, re.I) for k in keys)]
+            keep = sorted({m for n in hit for m in (n - 1, n, n + 1) if 0 <= m < len(sents)})
+            l = " ".join(sents[m] for m in keep)[:limit * 3]
+        if l:
+            out.append(l)
+    return "\n".join(out)
+
+
+def fill(values, evidence, text, call=yandex_call, review=()):
+    """Дозаполняет пустые поля и перепроверяет поля из `review` (отмеченные самопроверкой).
+
+    В модель уходит не весь эпикриз, а только строки с намёком на эти поля, с замаскированными
+    идентификаторами. Возвращает словарь: asked, filled, replaced, error, sent (что было отправлено)."""
     ask = missing_fields(values, text)
-    if not ask:
-        return 0, 0, None
-    spec = "\n".join(f"- {k}: {FIELDS[k][1]}; формат: {FIELDS[k][2]}" for k in ask)
-    user = f"Поля:\n{spec}\n\nЭпикриз:\n{text}"
+    recheck = [k for k in review if k in FIELDS and k not in ask and values.get(k) not in (None, NU)]
+    res = {"asked": len(ask) + len(recheck), "filled": 0, "replaced": 0, "error": None, "sent": ""}
+    if not ask and not recheck:
+        return res
+    names = patient_names(text)
+    part = mask(fragment(text, ask + recheck), names)
+    spec = "\n".join(f"- {k}: {FIELDS[k][1]}; формат: {FIELDS[k][2]}" for k in ask + recheck)
+    user = f"Поля:\n{spec}\n\nФрагменты эпикриза:\n{part}"
+    res["sent"] = user
+    if not part.strip():
+        return res
     try:
         raw = call(SYSTEM, user)
         m = re.search(r"\{.*\}", raw, re.S)
         answer = json.loads(m.group(0)) if m else {}
     except Exception as e:
-        return len(ask), 0, str(e)
-    done = 0
-    for k in ask:
+        res["error"] = str(e)
+        return res
+    for k in ask + recheck:
         item = answer.get(k) if isinstance(answer, dict) else None
         if not isinstance(item, dict):
             continue
         ok = _accept(k, item.get("value"), item.get("quote"), text)
-        if ok:
-            values[k], evidence[k] = ok[0], ok[1] + " [значение получено от YandexGPT]"
-            done += 1
-    return len(ask), done, None
+        if not ok or ok[0] == values.get(k):
+            continue
+        if k in recheck:
+            evidence[k] = ok[1] + f" [значение заменено по ответу YandexGPT; было: {values[k]}]"
+            res["replaced"] += 1
+        else:
+            evidence[k] = ok[1] + " [значение получено от YandexGPT]"
+            res["filled"] += 1
+        values[k] = ok[0]
+    return res
 
 
 if __name__ == "__main__":                           # проверка связи: python llm.py

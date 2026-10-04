@@ -56,7 +56,7 @@ def main():
 
     t0, rows, failed = time.time(), [], 0
     gap_rows, incomplete = [], 0
-    stats = {"calls": 0, "asked": 0, "filled": 0, "errors": 0, "seconds": 0.0}
+    stats = {"calls": 0, "asked": 0, "filled": 0, "replaced": 0, "errors": 0, "seconds": 0.0}
     for p in files:
         text = ""
         try:
@@ -67,12 +67,18 @@ def main():
             rows.append((p.stem, "документ", f"ошибка обработки: {e}"))
         if a.llm and vals:
             t1 = time.time()
-            asked, got, err = llm.fill(vals, ev, text)
+            first = {k: str(vals.get(k) or NU) for g in tpl.values() for k in g}
+            out_llm = llm.fill(vals, ev, text, review=[m.partition(": ")[0] for m in check(first, text)])
             stats["seconds"] += time.time() - t1
-            stats["calls"] += bool(asked); stats["asked"] += asked; stats["filled"] += got
-            if err:
+            stats["calls"] += bool(out_llm["sent"]); stats["asked"] += out_llm["asked"]
+            stats["filled"] += out_llm["filled"]; stats["replaced"] += out_llm["replaced"]
+            if out_llm["sent"]:
+                log = evd / "llm_requests"
+                log.mkdir(exist_ok=True)
+                (log / f"{p.stem}.txt").write_text(out_llm["sent"], encoding="utf-8")
+            if out_llm["error"]:
                 stats["errors"] += 1
-                rows.append((p.stem, "документ", f"YandexGPT недоступен, оставлен результат правил: {err[:150]}"))
+                rows.append((p.stem, "документ", f"YandexGPT недоступен, оставлен результат правил: {out_llm['error'][:150]}"))
         res = {g: {k: str(vals.get(k) or NU) for k in ks} for g, ks in tpl.items()}
         evi = {g: {k: {"value": res[g][k], "evidence": ev.get(k, "")} for k in ks} for g, ks in tpl.items()}
         (out / f"{p.stem}.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -103,7 +109,8 @@ def main():
     if a.llm:
         print(f"время: правила {rules:.2f} с, YandexGPT {stats['seconds']:.2f} с")
         print(f"YandexGPT: обращений {stats['calls']}, запрошено полей {stats['asked']}, "
-              f"принято {stats['filled']}, сбоев {stats['errors']}")
+              f"дозаполнено {stats['filled']}, заменено {stats['replaced']}, сбоев {stats['errors']}")
+        print(f"что именно отправлено в модель: {evd / 'llm_requests'}")
 
 
 if __name__ == "__main__":

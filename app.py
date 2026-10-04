@@ -79,21 +79,23 @@ class Job:
             if self.stop:
                 self.state = "stopped"
                 break
-            doc = {"name": name, "error": None, "warnings": [], "llm_fields": [], "verified": set(), "edited": {}, "notes": []}
+            doc = {"name": name, "error": None, "warnings": [], "llm_fields": [], "verified": set(), "edited": {}, "notes": [], "llm_sent": ""}
             try:
                 text = decode_bytes(self.files[name])
                 vals, ev = extract(text)
                 if self.llm:
                     before = dict(vals)
+                    first = {k: str(vals.get(k) or NU) for k in KEYS}
                     t = time.time()
-                    asked, got, err = llm.fill(vals, ev, text)
+                    out = llm.fill(vals, ev, text, review=[m.partition(": ")[0] for m in check(first, text)])
                     self.llm_seconds += time.time() - t
-                    self.stats["llm_calls"] += bool(asked)
-                    self.stats["llm_asked"] += asked
-                    self.stats["llm_filled"] += got
-                    if err:
+                    self.stats["llm_calls"] += bool(out["sent"])
+                    self.stats["llm_asked"] += out["asked"]
+                    self.stats["llm_filled"] += out["filled"] + out["replaced"]
+                    doc["llm_sent"] = out["sent"]
+                    if out["error"]:
                         self.stats["llm_errors"] += 1
-                        doc["warnings"].append("YandexGPT недоступен, оставлен результат локального режима: " + err[:150])
+                        doc["warnings"].append("YandexGPT недоступен, оставлен результат локального режима: " + out["error"][:150])
                     doc["llm_fields"] = [k for k in vals if vals[k] != before.get(k)]
             except Exception as e:                             # документ не должен ронять пакет
                 text, vals, ev = "", {}, {}
@@ -267,7 +269,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self.send({"error": "документ не найден"}, status=404)
                 return self.send({"name": name, "text": d["text"], "groups": j.nested(name, True),
                                   "warnings": d["warnings"], "error": d["error"], "llm_fields": d["llm_fields"],
-                                  "gaps": d["gaps"]})
+                                  "gaps": d["gaps"], "llm_sent": d["llm_sent"]})
             if parts[3] == "result.zip":
                 return self.send(j.archive(), "application/zip",
                                  extra={"Content-Disposition": 'attachment; filename="result.zip"'})
