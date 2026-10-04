@@ -10,7 +10,7 @@ for g in sorted(Path("gold").glob("*.json")):
     for k in a:
         tot += 1
         x, y = a[k], b[k]
-        same = x == y or (k == "rg_pc" and (y in x or x in y) and (x == NU) == (y == NU))
+        same = x == y
         try: same = same or float(x) == float(y)
         except ValueError: pass
         if same: ok += 1
