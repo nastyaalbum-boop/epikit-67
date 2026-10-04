@@ -60,7 +60,7 @@
 | Поле | Значения |
 |---|---|
 | `type_acs` | STEMI / NSTEMI / NA |
-| `mi_localisation` | A / I / L / N |
+| `mi_localisation` | A / I / L / N; если стенка в тексте не названа — по коду МКБ-10 (I21.0 → A, I21.1 → I, I21.2 → L) |
 | `art_hyper`, `atr_fibril`, `copd`, `dm`, `tlt`, `ecg_avb`, `ecg_elevation` | 1 / 0 |
 | `killip` | 1–4 |
 | `ckd`, `hf` | «ХБП 3А», «ХСН 2А, ФК 2» |

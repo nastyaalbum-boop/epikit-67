@@ -217,7 +217,12 @@ def _extract(text):
     if "инфаркт" in ml:
         loc = "A" if re.search(r"передн|перегородочн", ml) else "I" if re.search(r"нижн|задн|диафрагмальн", ml) \
             else "L" if "боков" in ml else "N"
-    put("mi_localisation", loc, main.strip())
+    loc_quote = main.strip()
+    if loc == "N":                                   # в тексте стенка не названа — определяем по коду МКБ-10
+        by_icd = {"I21.0": "A", "I21.1": "I", "I21.2": "L", "I22.0": "A", "I22.1": "I"}.get(icd)
+        if by_icd:
+            loc, loc_quote = by_icd, ev.get("diagnosis_icd", icd) + " [локализация определена по коду МКБ-10]"
+    put("mi_localisation", loc, loc_quote)
 
     # ================= осмотр при поступлении
     not_primary = LATER + r"|дома|адаптирован|привычн|рабоч\w+ АД|максимальн|до \d{3}/"
