@@ -36,7 +36,7 @@ def read_text(path):
 def main():
     ap = argparse.ArgumentParser(description="Извлечение 50 признаков из выписных эпикризов")
     ap.add_argument("--input", default="documents", help="папка с эпикризами (.md, .txt)")
-    ap.add_argument("--output", default="result", help="папка для JSON")
+    ap.add_argument("--output", default="result_train", help="папка для JSON (папка result отведена под контрольную выборку)")
     ap.add_argument("--evidence", default="evidence", help="папка для JSON с цитатами")
     ap.add_argument("--report", default="review_report.csv", help="список анкет для ручной проверки")
     ap.add_argument("--llm", action="store_true", help="дозаполнять пустые поля через YandexGPT (нужны YC_API_KEY и YC_FOLDER_ID)")
