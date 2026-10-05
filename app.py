@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import llm
+import parallel
 from extract import NU, extract
 from run import decode_bytes
 from validate import absent, check
@@ -19,6 +20,7 @@ TPL = json.loads((HERE / "template.json").read_text(encoding="utf-8"))
 KEYS = [k for ks in TPL.values() for k in ks]
 SUFFIXES = (".md", ".txt")
 JOBS = {}
+WORKERS = 0                # 0 — по числу ядер процессора
 LOCK = threading.Lock()
 
 
@@ -75,15 +77,15 @@ class Job:
     def run(self):
         self.state, self.started = "running", time.time()
         self.order.sort()
-        for name in self.order:
-            if self.stop:
-                self.state = "stopped"
-                break
+        results = parallel.run([self.files[n] for n in self.order], WORKERS, stop=lambda: self.stop)
+        for name, (text, vals, ev, err) in zip(self.order, results):
             doc = {"name": name, "error": None, "warnings": [], "llm_fields": [], "verified": set(), "edited": {}, "notes": [], "llm_sent": ""}
-            try:
-                text = decode_bytes(self.files[name])
-                vals, ev = extract(text)
-                if self.llm:
+            if err:
+                vals, ev = {}, {}
+                doc["error"] = err
+                self.stats["errors"] += 1
+            elif self.llm:
+                try:
                     before = dict(vals)
                     first = {k: str(vals.get(k) or NU) for k in KEYS}
                     t = time.time()
@@ -97,10 +99,8 @@ class Job:
                         self.stats["llm_errors"] += 1
                         doc["warnings"].append("YandexGPT недоступен, оставлен результат локального режима: " + out["error"][:150])
                     doc["llm_fields"] = [k for k in vals if vals[k] != before.get(k)]
-            except Exception as e:                             # документ не должен ронять пакет
-                text, vals, ev = "", {}, {}
-                doc["error"] = f"{type(e).__name__}: {e}"
-                self.stats["errors"] += 1
+                except Exception as e:                         # сбой модели не должен ронять пакет
+                    doc["warnings"].append(f"Сбой при обращении к YandexGPT: {e}")
             flat = {k: str(vals.get(k) or NU) for k in KEYS}
             doc["notes"] = list(doc["warnings"])            # замечания, не зависящие от значений
             if vals:
@@ -113,8 +113,7 @@ class Job:
             self.index[name] = len(self.rows)
             self.rows.append(self.row(doc))
             self.files[name] = b""                             # исходные байты больше не нужны
-        else:
-            self.state = "done"
+        self.state = "stopped" if self.stop and len(self.rows) < len(self.order) else "done"
         self.finished = time.time()
 
     def row(self, d):
@@ -152,7 +151,7 @@ class Job:
         done = len(self.rows)
         return {"id": self.id, "state": self.state, "llm": self.llm, "total": len(self.order), "done": done,
                 "skipped": self.skipped, "flagged": sum(1 for r in self.rows if r["warnings"] or r["error"]),
-                "seconds": round(total, 2), "rules_seconds": round(max(total - self.llm_seconds, 0), 2),
+                "seconds": round(total, 2), "workers": (WORKERS or parallel.default_workers()) if len(self.order) >= parallel.MIN_BATCH else 1, "rules_seconds": round(max(total - self.llm_seconds, 0), 2),
                 "llm_seconds": round(self.llm_seconds, 2), **self.stats, "fill": self.fill,
                 "verified_fields": sum(r["verified"] for r in self.rows),
                 "verified_docs": sum(1 for r in self.rows if r["verified"] == len(KEYS)),
@@ -341,16 +340,21 @@ def main():
     ap = argparse.ArgumentParser(description="Веб-интерфейс для пакетной обработки эпикризов")
     ap.add_argument("--port", type=int, default=8000)
     ap.add_argument("--no-browser", action="store_true", help="не открывать браузер автоматически")
+    ap.add_argument("--workers", type=int, default=0, help="число процессов; по умолчанию — по числу ядер")
     a = ap.parse_args()
+    global WORKERS
+    WORKERS = a.workers
     server = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
     url = f"http://127.0.0.1:{a.port}"
-    print(f"Интерфейс открыт: {url}\nОстановить — Ctrl+C")
+    print(f"Интерфейс открыт: {url}\nПроцессов для обработки: {a.workers or parallel.default_workers()}\nОстановить — Ctrl+C")
     if not a.no_browser:
         threading.Timer(0.6, lambda: webbrowser.open(url)).start()
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         print("\nОстановлено")
+    finally:
+        parallel.shutdown()
 
 
 if __name__ == "__main__":

@@ -381,7 +381,7 @@ function batchStats(){
   items.push(["teal", verDocs, "проверено врачом"]);
   if(s.errors) items.push(["bad", s.errors, "ошибок обработки"]);
   $("b-stats").innerHTML = items.map(([c, v, l]) => `<div class="stat ${c}"><b>${v}</b><span>${l}</span></div>`).join("")
-    + `<div class="note">Локальная обработка: ${s.rules_seconds} с` + (s.llm ? `<br>YandexGPT: ${s.llm_seconds} с, обращений ${s.llm_calls}, принято полей ${s.llm_filled} из ${s.llm_asked}` : "") + `</div>`;
+    + `<div class="note">Локальная обработка: ${s.rules_seconds} с` + (s.workers > 1 ? ` на ${s.workers} ядрах` : "") + (s.llm ? `<br>YandexGPT: ${s.llm_seconds} с, обращений ${s.llm_calls}, принято полей ${s.llm_filled} из ${s.llm_asked}` : "") + `</div>`;
 }
 async function poll(){
   const id = S.job, s = await api(`/api/job/${id}?since=${S.rows.length}`);

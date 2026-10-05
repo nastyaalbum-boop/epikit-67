@@ -10,6 +10,7 @@ from pathlib import Path
 from extract import extract, NU
 from validate import check, absent
 import llm
+import parallel
 
 HERE = Path(__file__).parent
 ENCODINGS = ("utf-8-sig", "utf-16", "cp1251")
@@ -39,6 +40,7 @@ def main():
     ap.add_argument("--evidence", default="evidence", help="папка для JSON с цитатами")
     ap.add_argument("--report", default="review_report.csv", help="список анкет для ручной проверки")
     ap.add_argument("--llm", action="store_true", help="дозаполнять пустые поля через YandexGPT (нужны YC_API_KEY и YC_FOLDER_ID)")
+    ap.add_argument("--workers", type=int, default=0, help="число процессов; по умолчанию — по числу ядер, 1 — без параллельности")
     a = ap.parse_args()
     if a.llm and not llm.configured():
         sys.exit("Для --llm задайте YC_API_KEY и YC_FOLDER_ID в переменных окружения или в файле .env")
@@ -57,14 +59,11 @@ def main():
     t0, rows, failed = time.time(), [], 0
     gap_rows, incomplete = [], 0
     stats = {"calls": 0, "asked": 0, "filled": 0, "replaced": 0, "errors": 0, "seconds": 0.0}
-    for p in files:
-        text = ""
-        try:
-            text = read_text(p)
-            vals, ev = extract(text)
-        except Exception as e:                      # документ не должен ронять пакет
+    workers = a.workers or parallel.default_workers()
+    for p, (text, vals, ev, err) in zip(files, parallel.run(files, workers)):
+        if err:
             vals, ev, failed = {}, {}, failed + 1
-            rows.append((p.stem, "документ", f"ошибка обработки: {e}"))
+            rows.append((p.stem, "документ", f"ошибка обработки: {err}"))
         if a.llm and vals:
             t1 = time.time()
             first = {k: str(vals.get(k) or NU) for g in tpl.values() for k in g}
@@ -102,7 +101,9 @@ def main():
     flagged = len({r[0] for r in rows})
     total = time.time() - t0
     rules = total - stats["seconds"]
-    print(f"обработано {len(files)} документов за {total:.2f} с; "
+    used = workers if len(files) >= parallel.MIN_BATCH else 1
+    parallel.shutdown()
+    print(f"обработано {len(files)} документов за {total:.2f} с ({used} {'процесс' if used == 1 else 'процесса' if used < 5 else 'процессов'}); "
           f"ошибок обработки: {failed}; на ручную проверку: {flagged} (см. {a.report})")
     if incomplete:
         print(f"документов, где части ключевых данных нет в самом тексте: {incomplete}")
