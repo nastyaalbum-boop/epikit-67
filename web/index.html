@@ -159,6 +159,7 @@ h3.g{font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 
           <button class="btn" id="pick-files">Выбрать файлы</button>
           <button class="btn" id="pick-dir">Выбрать папку</button>
           <button class="btn hidden" id="pick-demo">Открытые 100 документов</button>
+          <button class="btn hidden" id="pick-control">Контрольная выборка</button>
         </div>
       </div>
       <div class="row" style="margin-top:14px">
@@ -583,6 +584,7 @@ $("in-files").onchange = $("in-dir").onchange = e => { upload([...e.target.files
 $("run-path").onclick = () => runPath($("path").value);
 $("path").onkeydown = e => { if(e.key === "Enter") runPath($("path").value); };
 $("pick-demo").onclick = () => { $("path").value = "documents"; runPath("documents"); };
+$("pick-control").onclick = () => { $("path").value = "documents_control"; runPath("documents_control"); };
 const drop = $("drop");
 ["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
 ["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
@@ -596,6 +598,7 @@ drop.addEventListener("drop", async e => {
   S.tpl = st.template; S.groups = Object.keys(st.template); S.llmOK = st.llm_configured;
   $("m-llm").disabled = !S.llmOK; if(!S.llmOK) $("m-llm").title = "Задайте YC_API_KEY и YC_FOLDER_ID в файле .env";
   $("pick-demo").classList.toggle("hidden", !st.has_documents);
+  $("pick-control").classList.toggle("hidden", !st.has_control);
   setMode(false);
 })();
 </script>

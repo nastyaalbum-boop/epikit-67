@@ -1,0 +1,220 @@
+{
+  "даты эпизода": {
+    "admission_date": {
+      "value": "26.02.2024",
+      "evidence": "с 26.02.2024 по 08.03.2024"
+    },
+    "discharge_date": {
+      "value": "08.03.2024",
+      "evidence": "с 26.02.2024 по 08.03.2024"
+    }
+  },
+  "диагноз": {
+    "art_hyper": {
+      "value": "1",
+      "evidence": "Сопутствующие диагнозы: ГБ II ст., высокий сердечно-сосудистый риск"
+    },
+    "atr_fibril": {
+      "value": "0",
+      "evidence": ""
+    },
+    "ckd": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "copd": {
+      "value": "0",
+      "evidence": ""
+    },
+    "diagnosis_icd": {
+      "value": "I21.0",
+      "evidence": "МКБ-10 I21.0"
+    },
+    "dm": {
+      "value": "0",
+      "evidence": ""
+    },
+    "hf": {
+      "value": "ХСН 2А, ФК 3",
+      "evidence": "ХСН 2А, ФК 3"
+    },
+    "killip": {
+      "value": "2",
+      "evidence": "При поступлении класс Killip II."
+    },
+    "mi_localisation": {
+      "value": "A",
+      "evidence": "Основной диагноз: Острый инфаркт миокарда передней стенки, с элевацией ST. Код МКБ-10 I21.0"
+    },
+    "tlt": {
+      "value": "0",
+      "evidence": ""
+    },
+    "type_acs": {
+      "value": "STEMI",
+      "evidence": "Основной диагноз: Острый инфаркт миокарда передней стенки, с элевацией ST. Код МКБ-10 I21.0"
+    }
+  },
+  "осмотр при поступлении": {
+    "bmi": {
+      "value": "32.2",
+      "evidence": "ИМТ 32,2"
+    },
+    "bp": {
+      "value": "141/92",
+      "evidence": "АД 141/92"
+    },
+    "bpm": {
+      "value": "97",
+      "evidence": "пульс 97 в минуту"
+    },
+    "height": {
+      "value": "177",
+      "evidence": "Рост 177"
+    },
+    "rr": {
+      "value": "21",
+      "evidence": "ЧДД 21"
+    },
+    "smoking": {
+      "value": "Курит",
+      "evidence": "Курит"
+    },
+    "spo2": {
+      "value": "96",
+      "evidence": "SpO2 96"
+    },
+    "weight": {
+      "value": "101",
+      "evidence": "масса тела 101 кг"
+    }
+  },
+  "ЭКГ": {
+    "ecg_avb": {
+      "value": "0",
+      "evidence": ""
+    },
+    "ecg_bpm": {
+      "value": "95",
+      "evidence": "ЧСС 95 уд/мин"
+    },
+    "ecg_elevation": {
+      "value": "1",
+      "evidence": "Элевация ST в отведениях V1–V4"
+    },
+    "ecg_rythm": {
+      "value": "синусовый",
+      "evidence": "синусовый ритм"
+    }
+  },
+  "ЭХО-КГ": {
+    "echo_ef": {
+      "value": "41",
+      "evidence": "ФВ ЛЖ 41%"
+    },
+    "echo_lvd": {
+      "value": "47",
+      "evidence": "КДР ЛЖ 47"
+    },
+    "echo_lvd_2": {
+      "value": "39",
+      "evidence": "ЛП 39 мм"
+    },
+    "echo_mr": {
+      "value": "Митральная регургитация 2 ст.",
+      "evidence": "Митральная регургитация 2 ст."
+    },
+    "echo_zone": {
+      "value": "Гипокинез передней стенки ЛЖ",
+      "evidence": "Гипокинез передней стенки ЛЖ"
+    }
+  },
+  "рентген грудной полости": {
+    "rg_date": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "rg_pc": {
+      "value": "не указано",
+      "evidence": ""
+    }
+  },
+  "коронарография": {
+    "ca_date": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "ca_fact": {
+      "value": "N",
+      "evidence": ""
+    },
+    "ca_lad": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "rca": {
+      "value": "не указано",
+      "evidence": ""
+    }
+  },
+  "Лабораторные данные": {
+    "card_trop": {
+      "value": "положительный",
+      "evidence": "тропониновый тест — положительн"
+    },
+    "crea": {
+      "value": "85",
+      "evidence": "креатинин 85"
+    },
+    "glu": {
+      "value": "5.0",
+      "evidence": "глюкоза 5,0"
+    },
+    "hb": {
+      "value": "158",
+      "evidence": "гемоглобин 158"
+    },
+    "ldl": {
+      "value": "2.2",
+      "evidence": "ХС-ЛПНП 2.2"
+    },
+    "leucocytes": {
+      "value": "10.6",
+      "evidence": "лейкоциты 10.6"
+    },
+    "thrombocytes": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "tot_chol": {
+      "value": "5.3",
+      "evidence": "общий холестерин 5.3"
+    }
+  },
+  "медикаментозная терапия": {
+    "2_aag": {
+      "value": "Клопидогрел 75 мг 1 раз в день",
+      "evidence": "Клопидогрел 75 мг 1 раз в день"
+    },
+    "ace_ing_sartan": {
+      "value": "Рамиприл 5 мг утром",
+      "evidence": "Рамиприл 5 мг утром"
+    },
+    "anticoagulant": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "aspirin": {
+      "value": "АСК 100 мг вечером",
+      "evidence": "АСК 100 мг вечером"
+    },
+    "bb": {
+      "value": "Метопролол 50 мг 2 раза в день",
+      "evidence": "Метопролол 50 мг 2 раза в день"
+    },
+    "statin": {
+      "value": "Розувастатин 20 мг вечером",
+      "evidence": "Розувастатин 20 мг вечером"
+    }
+  }
+}

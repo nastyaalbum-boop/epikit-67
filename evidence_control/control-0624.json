@@ -1,0 +1,220 @@
+{
+  "даты эпизода": {
+    "admission_date": {
+      "value": "09.05.2024",
+      "evidence": "Поступил: 09.05.2024"
+    },
+    "discharge_date": {
+      "value": "13.05.2024",
+      "evidence": "выписан: 13.05.2024"
+    }
+  },
+  "диагноз": {
+    "art_hyper": {
+      "value": "1",
+      "evidence": "Фоновые и сопутствующие заболевания: Гипертоническая болезнь II стадии"
+    },
+    "atr_fibril": {
+      "value": "0",
+      "evidence": ""
+    },
+    "ckd": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "copd": {
+      "value": "0",
+      "evidence": ""
+    },
+    "diagnosis_icd": {
+      "value": "I21.4",
+      "evidence": "МКБ-10 I21.4"
+    },
+    "dm": {
+      "value": "0",
+      "evidence": ""
+    },
+    "hf": {
+      "value": "ХСН 2А, ФК 2",
+      "evidence": "ХСН 2А, ФК 2"
+    },
+    "killip": {
+      "value": "2",
+      "evidence": "При поступлении класс Killip II."
+    },
+    "mi_localisation": {
+      "value": "N",
+      "evidence": "Основной диагноз: Острый коронарный синдром без подъёма ST, инфаркт миокарда. Код МКБ-10 I21.4"
+    },
+    "tlt": {
+      "value": "0",
+      "evidence": ""
+    },
+    "type_acs": {
+      "value": "NSTEMI",
+      "evidence": "Основной диагноз: Острый коронарный синдром без подъёма ST, инфаркт миокарда. Код МКБ-10 I21.4"
+    }
+  },
+  "осмотр при поступлении": {
+    "bmi": {
+      "value": "26.3",
+      "evidence": "ИМТ 26.3"
+    },
+    "bp": {
+      "value": "169/96",
+      "evidence": "АД 169/96"
+    },
+    "bpm": {
+      "value": "72",
+      "evidence": "пульс 72 в минуту"
+    },
+    "height": {
+      "value": "185",
+      "evidence": "Рост 185"
+    },
+    "rr": {
+      "value": "22",
+      "evidence": "ЧДД 22"
+    },
+    "smoking": {
+      "value": "Курит",
+      "evidence": "Курит"
+    },
+    "spo2": {
+      "value": "96",
+      "evidence": "SpO2 96"
+    },
+    "weight": {
+      "value": "90",
+      "evidence": "масса тела 90 кг"
+    }
+  },
+  "ЭКГ": {
+    "ecg_avb": {
+      "value": "1",
+      "evidence": "АВ-блокада I степени"
+    },
+    "ecg_bpm": {
+      "value": "101",
+      "evidence": "ЧСС 101 уд/мин"
+    },
+    "ecg_elevation": {
+      "value": "0",
+      "evidence": "Подъёма ST не зарегистрировано; имеются неспецифические изменения реполяризации"
+    },
+    "ecg_rythm": {
+      "value": "синусовый",
+      "evidence": "синусовый ритм"
+    }
+  },
+  "ЭХО-КГ": {
+    "echo_ef": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_lvd": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_lvd_2": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_mr": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_zone": {
+      "value": "не указано",
+      "evidence": ""
+    }
+  },
+  "рентген грудной полости": {
+    "rg_date": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "rg_pc": {
+      "value": "не указано",
+      "evidence": ""
+    }
+  },
+  "коронарография": {
+    "ca_date": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "ca_fact": {
+      "value": "N",
+      "evidence": ""
+    },
+    "ca_lad": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "rca": {
+      "value": "не указано",
+      "evidence": ""
+    }
+  },
+  "Лабораторные данные": {
+    "card_trop": {
+      "value": "положительный",
+      "evidence": "тропониновый тест — положительн"
+    },
+    "crea": {
+      "value": "83",
+      "evidence": "креатинин 83"
+    },
+    "glu": {
+      "value": "5.6",
+      "evidence": "глюкоза 5,6"
+    },
+    "hb": {
+      "value": "159",
+      "evidence": "гемоглобин 159"
+    },
+    "ldl": {
+      "value": "4.7",
+      "evidence": "ХС-ЛПНП 4,7"
+    },
+    "leucocytes": {
+      "value": "6.4",
+      "evidence": "лейкоциты 6,4"
+    },
+    "thrombocytes": {
+      "value": "262",
+      "evidence": "тромбоциты 262"
+    },
+    "tot_chol": {
+      "value": "5.5",
+      "evidence": "общий холестерин 5.5"
+    }
+  },
+  "медикаментозная терапия": {
+    "2_aag": {
+      "value": "Тикагрелор 90 мг 2 раза в день",
+      "evidence": "Тикагрелор 90 мг 2 раза в день"
+    },
+    "ace_ing_sartan": {
+      "value": "Периндоприл 5 мг утром",
+      "evidence": "Периндоприл 5 мг утром"
+    },
+    "anticoagulant": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "aspirin": {
+      "value": "АСК 100 мг вечером",
+      "evidence": "АСК 100 мг вечером"
+    },
+    "bb": {
+      "value": "Бисопролол 5 мг утром",
+      "evidence": "Бисопролол 5 мг утром"
+    },
+    "statin": {
+      "value": "Розувастатин 20 мг вечером",
+      "evidence": "Розувастатин 20 мг вечером"
+    }
+  }
+}

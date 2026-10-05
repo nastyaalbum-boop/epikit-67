@@ -252,7 +252,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.send((HERE / "web" / "index.html").read_bytes(), "text/html; charset=utf-8")
         if u.path == "/api/state":
             return self.send({"llm_configured": llm.configured(), "template": TPL,
-                              "has_documents": (HERE / "documents").is_dir()})
+                              "has_documents": (HERE / "documents").is_dir(),
+                              "has_control": (HERE / "documents_control").is_dir()})
         if u.path == "/api/quality":
             return self.send(quality())
         if len(parts) >= 3 and parts[:2] == ["api", "job"]:

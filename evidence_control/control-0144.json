@@ -1,0 +1,220 @@
+{
+  "даты эпизода": {
+    "admission_date": {
+      "value": "07.05.2024",
+      "evidence": "Поступил: 07.05.2024"
+    },
+    "discharge_date": {
+      "value": "12.05.2024",
+      "evidence": "выписан: 12.05.2024"
+    }
+  },
+  "диагноз": {
+    "art_hyper": {
+      "value": "0",
+      "evidence": ""
+    },
+    "atr_fibril": {
+      "value": "0",
+      "evidence": ""
+    },
+    "ckd": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "copd": {
+      "value": "0",
+      "evidence": ""
+    },
+    "diagnosis_icd": {
+      "value": "I21.4",
+      "evidence": "МКБ-10 I21.4"
+    },
+    "dm": {
+      "value": "0",
+      "evidence": ""
+    },
+    "hf": {
+      "value": "ХСН 1, ФК 2",
+      "evidence": "ХСН 1, ФК 2"
+    },
+    "killip": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "mi_localisation": {
+      "value": "N",
+      "evidence": "Основной диагноз: Острый коронарный синдром без подъёма ST, инфаркт миокарда. Код МКБ-10 I21.4"
+    },
+    "tlt": {
+      "value": "0",
+      "evidence": ""
+    },
+    "type_acs": {
+      "value": "NSTEMI",
+      "evidence": "Основной диагноз: Острый коронарный синдром без подъёма ST, инфаркт миокарда. Код МКБ-10 I21.4"
+    }
+  },
+  "осмотр при поступлении": {
+    "bmi": {
+      "value": "23.0",
+      "evidence": "ИМТ 23.0"
+    },
+    "bp": {
+      "value": "134/94",
+      "evidence": "АД 134/94"
+    },
+    "bpm": {
+      "value": "76",
+      "evidence": "пульс 76 в минуту"
+    },
+    "height": {
+      "value": "184",
+      "evidence": "Рост 184"
+    },
+    "rr": {
+      "value": "18",
+      "evidence": "ЧДД 18"
+    },
+    "smoking": {
+      "value": "Курит",
+      "evidence": "Курит"
+    },
+    "spo2": {
+      "value": "96",
+      "evidence": "SpO2 96"
+    },
+    "weight": {
+      "value": "78",
+      "evidence": "масса тела 78 кг"
+    }
+  },
+  "ЭКГ": {
+    "ecg_avb": {
+      "value": "0",
+      "evidence": ""
+    },
+    "ecg_bpm": {
+      "value": "106",
+      "evidence": "ЧСС 106 уд/мин"
+    },
+    "ecg_elevation": {
+      "value": "0",
+      "evidence": "Подъёма ST не зарегистрировано; имеются неспецифические изменения реполяризации"
+    },
+    "ecg_rythm": {
+      "value": "синусовый",
+      "evidence": "синусовый ритм"
+    }
+  },
+  "ЭХО-КГ": {
+    "echo_ef": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_lvd": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_lvd_2": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_mr": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_zone": {
+      "value": "не указано",
+      "evidence": ""
+    }
+  },
+  "рентген грудной полости": {
+    "rg_date": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "rg_pc": {
+      "value": "не указано",
+      "evidence": ""
+    }
+  },
+  "коронарография": {
+    "ca_date": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "ca_fact": {
+      "value": "N",
+      "evidence": ""
+    },
+    "ca_lad": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "rca": {
+      "value": "не указано",
+      "evidence": ""
+    }
+  },
+  "Лабораторные данные": {
+    "card_trop": {
+      "value": "положительный",
+      "evidence": "тропониновый тест — положительн"
+    },
+    "crea": {
+      "value": "94",
+      "evidence": "креатинин 94"
+    },
+    "glu": {
+      "value": "5.4",
+      "evidence": "глюкоза 5.4"
+    },
+    "hb": {
+      "value": "131",
+      "evidence": "гемоглобин 131"
+    },
+    "ldl": {
+      "value": "3.1",
+      "evidence": "ХС-ЛПНП 3,1"
+    },
+    "leucocytes": {
+      "value": "8.0",
+      "evidence": "лейкоциты 8,0"
+    },
+    "thrombocytes": {
+      "value": "338",
+      "evidence": "тромбоциты 338"
+    },
+    "tot_chol": {
+      "value": "4.5",
+      "evidence": "общий холестерин 4,5"
+    }
+  },
+  "медикаментозная терапия": {
+    "2_aag": {
+      "value": "Клопидогрел 75 мг 1 раз в день",
+      "evidence": "Клопидогрел 75 мг 1 раз в день"
+    },
+    "ace_ing_sartan": {
+      "value": "Периндоприл 5 мг утром",
+      "evidence": "Периндоприл 5 мг утром"
+    },
+    "anticoagulant": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "aspirin": {
+      "value": "АСК 100 мг вечером",
+      "evidence": "АСК 100 мг вечером"
+    },
+    "bb": {
+      "value": "Метопролол 50 мг 2 раза в день",
+      "evidence": "Метопролол 50 мг 2 раза в день"
+    },
+    "statin": {
+      "value": "Аторвастатин 80 мг вечером",
+      "evidence": "Аторвастатин 80 мг вечером"
+    }
+  }
+}

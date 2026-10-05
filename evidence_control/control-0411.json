@@ -1,0 +1,220 @@
+{
+  "даты эпизода": {
+    "admission_date": {
+      "value": "06.02.2021",
+      "evidence": "с 06.02.2021 по 15.02.2021"
+    },
+    "discharge_date": {
+      "value": "15.02.2021",
+      "evidence": "с 06.02.2021 по 15.02.2021"
+    }
+  },
+  "диагноз": {
+    "art_hyper": {
+      "value": "0",
+      "evidence": ""
+    },
+    "atr_fibril": {
+      "value": "0",
+      "evidence": ""
+    },
+    "ckd": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "copd": {
+      "value": "0",
+      "evidence": ""
+    },
+    "diagnosis_icd": {
+      "value": "I21.1",
+      "evidence": "МКБ-10 I21.1"
+    },
+    "dm": {
+      "value": "0",
+      "evidence": ""
+    },
+    "hf": {
+      "value": "ХСН 2А, ФК 3",
+      "evidence": "ХСН 2А, ФК 3"
+    },
+    "killip": {
+      "value": "1",
+      "evidence": "При поступлении класс Killip I."
+    },
+    "mi_localisation": {
+      "value": "I",
+      "evidence": "Основной диагноз: Острый инфаркт миокарда нижней стенки, с элевацией ST. Код МКБ-10 I21.1"
+    },
+    "tlt": {
+      "value": "0",
+      "evidence": ""
+    },
+    "type_acs": {
+      "value": "STEMI",
+      "evidence": "Основной диагноз: Острый инфаркт миокарда нижней стенки, с элевацией ST. Код МКБ-10 I21.1"
+    }
+  },
+  "осмотр при поступлении": {
+    "bmi": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "bp": {
+      "value": "128/76",
+      "evidence": "АД 128/76"
+    },
+    "bpm": {
+      "value": "87",
+      "evidence": "пульс 87 в минуту"
+    },
+    "height": {
+      "value": "169",
+      "evidence": "Рост 169"
+    },
+    "rr": {
+      "value": "16",
+      "evidence": "ЧДД 16"
+    },
+    "smoking": {
+      "value": "Курит",
+      "evidence": "Курит"
+    },
+    "spo2": {
+      "value": "96",
+      "evidence": "SpO2 96"
+    },
+    "weight": {
+      "value": "74",
+      "evidence": "масса тела 74 кг"
+    }
+  },
+  "ЭКГ": {
+    "ecg_avb": {
+      "value": "0",
+      "evidence": ""
+    },
+    "ecg_bpm": {
+      "value": "112",
+      "evidence": "ЧСС 112 уд/мин"
+    },
+    "ecg_elevation": {
+      "value": "1",
+      "evidence": "Подъём сегмента ST в II, III, aVF"
+    },
+    "ecg_rythm": {
+      "value": "синусовый",
+      "evidence": "синусовый ритм"
+    }
+  },
+  "ЭХО-КГ": {
+    "echo_ef": {
+      "value": "62",
+      "evidence": "ФВ ЛЖ 62%"
+    },
+    "echo_lvd": {
+      "value": "59",
+      "evidence": "КДР ЛЖ 59"
+    },
+    "echo_lvd_2": {
+      "value": "45",
+      "evidence": "ЛП 45 мм"
+    },
+    "echo_mr": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_zone": {
+      "value": "Гипокинез нижней стенки ЛЖ",
+      "evidence": "Гипокинез нижней стенки ЛЖ"
+    }
+  },
+  "рентген грудной полости": {
+    "rg_date": {
+      "value": "06.02.2021",
+      "evidence": "Рентген ОГК. Рентгенография грудной клетки 06.02.2021. Лёгочные поля расправлены, новых оч"
+    },
+    "rg_pc": {
+      "value": "Признаков отёка лёгких не выявлено",
+      "evidence": "Признаков отёка лёгких не выявлено"
+    }
+  },
+  "коронарография": {
+    "ca_date": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "ca_fact": {
+      "value": "N",
+      "evidence": ""
+    },
+    "ca_lad": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "rca": {
+      "value": "не указано",
+      "evidence": ""
+    }
+  },
+  "Лабораторные данные": {
+    "card_trop": {
+      "value": "положительный",
+      "evidence": "тропониновый тест — положительн"
+    },
+    "crea": {
+      "value": "99",
+      "evidence": "креатинин 99"
+    },
+    "glu": {
+      "value": "5.7",
+      "evidence": "глюкоза 5.7"
+    },
+    "hb": {
+      "value": "132",
+      "evidence": "гемоглобин 132"
+    },
+    "ldl": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "leucocytes": {
+      "value": "5.9",
+      "evidence": "лейкоциты 5.9"
+    },
+    "thrombocytes": {
+      "value": "248",
+      "evidence": "тромбоциты 248"
+    },
+    "tot_chol": {
+      "value": "5.9",
+      "evidence": "общий холестерин 5,9"
+    }
+  },
+  "медикаментозная терапия": {
+    "2_aag": {
+      "value": "Тикагрелор 90 мг 2 раза в день",
+      "evidence": "Тикагрелор 90 мг 2 раза в день"
+    },
+    "ace_ing_sartan": {
+      "value": "Периндоприл 5 мг утром",
+      "evidence": "Периндоприл 5 мг утром"
+    },
+    "anticoagulant": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "aspirin": {
+      "value": "АСК 100 мг вечером",
+      "evidence": "АСК 100 мг вечером"
+    },
+    "bb": {
+      "value": "Метопролол 50 мг 2 раза в день",
+      "evidence": "Метопролол 50 мг 2 раза в день"
+    },
+    "statin": {
+      "value": "Розувастатин 20 мг вечером",
+      "evidence": "Розувастатин 20 мг вечером"
+    }
+  }
+}

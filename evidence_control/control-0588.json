@@ -1,0 +1,220 @@
+{
+  "даты эпизода": {
+    "admission_date": {
+      "value": "03.05.2023",
+      "evidence": "Поступил: 03.05.2023"
+    },
+    "discharge_date": {
+      "value": "12.05.2023",
+      "evidence": "выписан: 12.05.2023"
+    }
+  },
+  "диагноз": {
+    "art_hyper": {
+      "value": "1",
+      "evidence": "Фоновые и сопутствующие заболевания: Гипертоническая болезнь II стадии"
+    },
+    "atr_fibril": {
+      "value": "0",
+      "evidence": ""
+    },
+    "ckd": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "copd": {
+      "value": "0",
+      "evidence": ""
+    },
+    "diagnosis_icd": {
+      "value": "I20.0",
+      "evidence": "МКБ-10 I20.0"
+    },
+    "dm": {
+      "value": "0",
+      "evidence": ""
+    },
+    "hf": {
+      "value": "ХСН 2А, ФК 2",
+      "evidence": "ХСН 2А, ФК 2"
+    },
+    "killip": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "mi_localisation": {
+      "value": "N",
+      "evidence": "Основной диагноз: ИБС. Нестабильная стенокардия. Код МКБ-10 I20.0"
+    },
+    "tlt": {
+      "value": "0",
+      "evidence": ""
+    },
+    "type_acs": {
+      "value": "NA",
+      "evidence": "Основной диагноз: ИБС. Нестабильная стенокардия. Код МКБ-10 I20.0"
+    }
+  },
+  "осмотр при поступлении": {
+    "bmi": {
+      "value": "22.8",
+      "evidence": "ИМТ 22,8"
+    },
+    "bp": {
+      "value": "164/67",
+      "evidence": "АД 164/67"
+    },
+    "bpm": {
+      "value": "62",
+      "evidence": "пульс 62 в минуту"
+    },
+    "height": {
+      "value": "161",
+      "evidence": "Рост 161"
+    },
+    "rr": {
+      "value": "17",
+      "evidence": "ЧДД 17"
+    },
+    "smoking": {
+      "value": "Курит",
+      "evidence": "Курит"
+    },
+    "spo2": {
+      "value": "99",
+      "evidence": "SpO2 99"
+    },
+    "weight": {
+      "value": "59",
+      "evidence": "масса тела 59 кг"
+    }
+  },
+  "ЭКГ": {
+    "ecg_avb": {
+      "value": "0",
+      "evidence": ""
+    },
+    "ecg_bpm": {
+      "value": "82",
+      "evidence": "ЧСС 82 уд/мин"
+    },
+    "ecg_elevation": {
+      "value": "0",
+      "evidence": "Подъёма ST не зарегистрировано; имеются неспецифические изменения реполяризации"
+    },
+    "ecg_rythm": {
+      "value": "синусовый",
+      "evidence": "синусовый ритм"
+    }
+  },
+  "ЭХО-КГ": {
+    "echo_ef": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_lvd": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_lvd_2": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_mr": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_zone": {
+      "value": "не указано",
+      "evidence": ""
+    }
+  },
+  "рентген грудной полости": {
+    "rg_date": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "rg_pc": {
+      "value": "не указано",
+      "evidence": ""
+    }
+  },
+  "коронарография": {
+    "ca_date": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "ca_fact": {
+      "value": "N",
+      "evidence": ""
+    },
+    "ca_lad": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "rca": {
+      "value": "не указано",
+      "evidence": ""
+    }
+  },
+  "Лабораторные данные": {
+    "card_trop": {
+      "value": "отрицательный",
+      "evidence": "тропониновый тест — отрицательн"
+    },
+    "crea": {
+      "value": "80",
+      "evidence": "креатинин 80"
+    },
+    "glu": {
+      "value": "4.7",
+      "evidence": "глюкоза 4,7"
+    },
+    "hb": {
+      "value": "151",
+      "evidence": "гемоглобин 151"
+    },
+    "ldl": {
+      "value": "2.6",
+      "evidence": "ХС-ЛПНП 2,6"
+    },
+    "leucocytes": {
+      "value": "5.9",
+      "evidence": "лейкоциты 5.9"
+    },
+    "thrombocytes": {
+      "value": "262",
+      "evidence": "тромбоциты 262"
+    },
+    "tot_chol": {
+      "value": "4.9",
+      "evidence": "общий холестерин 4.9"
+    }
+  },
+  "медикаментозная терапия": {
+    "2_aag": {
+      "value": "Клопидогрел 75 мг 1 раз в день",
+      "evidence": "Клопидогрел 75 мг 1 раз в день"
+    },
+    "ace_ing_sartan": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "anticoagulant": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "aspirin": {
+      "value": "АСК 100 мг утром",
+      "evidence": "Ацетилсалициловая кислота 100 мг утром"
+    },
+    "bb": {
+      "value": "Метопролол 50 мг 2 раза в день",
+      "evidence": "Метопролол 50 мг 2 раза в день"
+    },
+    "statin": {
+      "value": "Розувастатин 20 мг вечером",
+      "evidence": "Розувастатин 20 мг вечером"
+    }
+  }
+}

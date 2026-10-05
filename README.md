@@ -23,6 +23,23 @@
 - `evidence/имя.json` — те же поля с цитатой из текста, подтверждающей значение;
 - `review_report.csv` — список анкет, которые стоит проверить вручную, с причиной.
 
+## Контрольная выборка
+
+Контрольные эпикризы жюри лежат в папке `documents_control/` (1000 файлов `control-0001.md` … `control-1000.md`).
+Запуск именно на них:
+
+    python run.py --input documents_control --output result_control --evidence evidence_control --report review_report_control.csv
+
+Результат появится в папке `result_control/` — по одному файлу `control-NNNN.json` на каждый эпикриз.
+Открытые 100 документов (`documents/` → `result/`) эта команда не затрагивает: у контрольных файлов
+свои имена и своя папка.
+
+По условию кейса итоговые JSON должны лежать в папке `result` в корне репозитория, поэтому готовые
+`control-*.json` продублированы и там. Если контрольный прогон повторяется после изменения правил,
+обновите копию:
+
+    python run.py --input documents_control --output result --evidence evidence_control --report review_report_control.csv
+
 ## Веб-интерфейс
 
     python app.py
@@ -141,5 +158,7 @@
 | `evaluate.py` | сверка с эталоном |
 | `template.json` | шаблон ответа организаторов |
 | `documents/` | 100 открытых эпикризов |
-| `result/` | результат для открытых эпикризов |
+| `documents_control/` | 1000 контрольных эпикризов жюри |
+| `result_control/`, `evidence_control/` | результат и цитаты для контрольной выборки |
+| `result/` | итоговые JSON: контрольная выборка (`control-*.json`) и открытые эпикризы (`train-*.json`) |
 | `gold/` | ручная разметка |

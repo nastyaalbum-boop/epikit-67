@@ -1,0 +1,220 @@
+{
+  "даты эпизода": {
+    "admission_date": {
+      "value": "15.05.2022",
+      "evidence": "Поступил: 15.05.2022"
+    },
+    "discharge_date": {
+      "value": "22.05.2022",
+      "evidence": "выписан: 22.05.2022"
+    }
+  },
+  "диагноз": {
+    "art_hyper": {
+      "value": "0",
+      "evidence": ""
+    },
+    "atr_fibril": {
+      "value": "0",
+      "evidence": ""
+    },
+    "ckd": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "copd": {
+      "value": "0",
+      "evidence": ""
+    },
+    "diagnosis_icd": {
+      "value": "I21.2",
+      "evidence": "МКБ-10 I21.2"
+    },
+    "dm": {
+      "value": "0",
+      "evidence": ""
+    },
+    "hf": {
+      "value": "ХСН 1, ФК 2",
+      "evidence": "ХСН 1, ФК 2"
+    },
+    "killip": {
+      "value": "3",
+      "evidence": "При поступлении класс Killip III."
+    },
+    "mi_localisation": {
+      "value": "L",
+      "evidence": "Основной диагноз: Острый инфаркт миокарда боковой стенки, с элевацией ST. Код МКБ-10 I21.2"
+    },
+    "tlt": {
+      "value": "0",
+      "evidence": ""
+    },
+    "type_acs": {
+      "value": "STEMI",
+      "evidence": "Основной диагноз: Острый инфаркт миокарда боковой стенки, с элевацией ST. Код МКБ-10 I21.2"
+    }
+  },
+  "осмотр при поступлении": {
+    "bmi": {
+      "value": "36.8",
+      "evidence": "ИМТ 36,8"
+    },
+    "bp": {
+      "value": "140/85",
+      "evidence": "АД 140/85"
+    },
+    "bpm": {
+      "value": "103",
+      "evidence": "пульс 103 в минуту"
+    },
+    "height": {
+      "value": "159",
+      "evidence": "Рост 159"
+    },
+    "rr": {
+      "value": "23",
+      "evidence": "ЧДД 23"
+    },
+    "smoking": {
+      "value": "Курит",
+      "evidence": "Курит"
+    },
+    "spo2": {
+      "value": "93",
+      "evidence": "SpO2 93"
+    },
+    "weight": {
+      "value": "93",
+      "evidence": "масса тела 93 кг"
+    }
+  },
+  "ЭКГ": {
+    "ecg_avb": {
+      "value": "0",
+      "evidence": ""
+    },
+    "ecg_bpm": {
+      "value": "66",
+      "evidence": "ЧСС 66 уд/мин"
+    },
+    "ecg_elevation": {
+      "value": "1",
+      "evidence": "Элевация ST в отведениях I, aVL, V5–V6"
+    },
+    "ecg_rythm": {
+      "value": "синусовый",
+      "evidence": "синусовый ритм"
+    }
+  },
+  "ЭХО-КГ": {
+    "echo_ef": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_lvd": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_lvd_2": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_mr": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "echo_zone": {
+      "value": "не указано",
+      "evidence": ""
+    }
+  },
+  "рентген грудной полости": {
+    "rg_date": {
+      "value": "15.05.2022",
+      "evidence": "Рентгенография грудной клетки 15.05.2022. Лёгочные поля расправлены, новых очаговых теней "
+    },
+    "rg_pc": {
+      "value": "Признаки интерстициального отёка лёгких",
+      "evidence": "Заключение: Признаки интерстициального отёка лёгких"
+    }
+  },
+  "коронарография": {
+    "ca_date": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "ca_fact": {
+      "value": "N",
+      "evidence": ""
+    },
+    "ca_lad": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "rca": {
+      "value": "не указано",
+      "evidence": ""
+    }
+  },
+  "Лабораторные данные": {
+    "card_trop": {
+      "value": "положительный",
+      "evidence": "тропониновый тест — положительн"
+    },
+    "crea": {
+      "value": "97",
+      "evidence": "креатинин 97"
+    },
+    "glu": {
+      "value": "5.2",
+      "evidence": "глюкоза 5.2"
+    },
+    "hb": {
+      "value": "135",
+      "evidence": "гемоглобин 135"
+    },
+    "ldl": {
+      "value": "4.1",
+      "evidence": "ХС-ЛПНП 4,1"
+    },
+    "leucocytes": {
+      "value": "9.1",
+      "evidence": "лейкоциты 9.1"
+    },
+    "thrombocytes": {
+      "value": "315",
+      "evidence": "тромбоциты 315"
+    },
+    "tot_chol": {
+      "value": "6.1",
+      "evidence": "общий холестерин 6.1"
+    }
+  },
+  "медикаментозная терапия": {
+    "2_aag": {
+      "value": "Тикагрелор 90 мг 2 раза в день",
+      "evidence": "Тикагрелор 90 мг 2 раза в день"
+    },
+    "ace_ing_sartan": {
+      "value": "Периндоприл 5 мг утром",
+      "evidence": "Периндоприл 5 мг утром"
+    },
+    "anticoagulant": {
+      "value": "не указано",
+      "evidence": ""
+    },
+    "aspirin": {
+      "value": "АСК 100 мг вечером",
+      "evidence": "АСК 100 мг вечером"
+    },
+    "bb": {
+      "value": "Метопролол 50 мг 2 раза в день",
+      "evidence": "Метопролол 50 мг 2 раза в день"
+    },
+    "statin": {
+      "value": "Розувастатин 20 мг вечером",
+      "evidence": "Розувастатин 20 мг вечером"
+    }
+  }
+}
